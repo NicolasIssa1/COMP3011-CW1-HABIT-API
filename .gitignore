@@ -209,3 +209,9 @@ __marimo__/
 # Editor
 .vscode/
 
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
