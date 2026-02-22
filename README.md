@@ -36,8 +36,17 @@ This API allows a client to:
 - `ai-logs/` — GenAI declaration and exported conversation logs
 - `data/` — dataset files (raw/processed) if used
 
-## How to run (will be updated once the API skeleton is implemented)
-> Setup/run instructions will be added after the initial FastAPI + database skeleton is committed.
+## Run locally
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# (optional) create .env with:
+# DATABASE_URL=sqlite:///./dev.db
+
+alembic upgrade head
+uvicorn app.main:app --reload
 
 ## Deliverables (for assessment)
 - **Code repository:** this GitHub repository with visible commit history
