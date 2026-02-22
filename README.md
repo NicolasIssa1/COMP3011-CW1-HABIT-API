@@ -49,8 +49,20 @@ This API allows a client to:
 This is a GREEN assessment. All GenAI tools used will be declared with purpose and examples.
 - GenAI declaration and exported logs are stored in: **`/ai-logs`**
 
-## Links (to be filled near submission)
-- Deployed API URL: _TBD_
-- API docs PDF: _TBD_
-- Technical report PDF: _TBD_
-- Slides link: _TBD_
+## Links
+- Deployed API URL: https://comp3011-cw1-habit-api.onrender.com
+- Health check: https://comp3011-cw1-habit-api.onrender.com/health
+- Swagger UI: https://comp3011-cw1-habit-api.onrender.com/docs
+- OpenAPI JSON: https://comp3011-cw1-habit-api.onrender.com/openapi.json
+
+## API Documentation (PDF)
+The exported API documentation PDF will be placed in:
+- `docs/api_documentation.pdf` (to be generated near submission)
+
+## Technical Report (PDF)
+The final technical report (max 5 pages) will be placed in:
+- `report/technical_report.pdf` (to be generated near submission)
+
+## Slides
+The presentation slides used in the oral exam will be placed in:
+- `slides/presentation.pptx` (to be generated near submission)
