@@ -36,38 +36,27 @@ This API allows a client to:
 - `ai-logs/` — GenAI declaration and exported conversation logs
 
 ## Run locally
-```bash
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+    python -m venv .venv
+    source .venv/bin/activate   # Windows: .venv\Scripts\activate
+    pip install -r requirements.txt
 
-# (optional) create .env with:
-# DATABASE_URL=sqlite:///./dev.db
+    # (optional) create .env with:
+    # DATABASE_URL=sqlite:///./dev.db
 
-alembic upgrade head
-uvicorn app.main:app --reload
+    alembic upgrade head
+    uvicorn app.main:app --reload
 
-Deliverables (for assessment)
+## Deliverables (for assessment)
+- **API documentation:** `docs/api_documentation.pdf`
+- **Technical report:** `report/technical_report.pdf`
+- **Presentation slides:** `slides/presentation.pptx` (to be generated near submission)
+- **GenAI declaration + logs:** `ai-logs/`
 
-API documentation: docs/api_documentation.pdf
+## GenAI (GREEN assessment)
+This is a GREEN assessment. GenAI declaration and exported logs are stored in: **`ai-logs/`**
 
-Technical report: report/technical_report.pdf
-
-Presentation slides: slides/presentation.pptx (to be generated near submission)
-
-GenAI declaration + logs: ai-logs/
-
-GenAI (GREEN assessment)
-
-This is a GREEN assessment. All GenAI tools used will be declared with purpose and examples.
-GenAI declaration and exported logs are stored in: ai-logs/
-
-Links
-
-Deployed API URL: https://comp3011-cw1-habit-api.onrender.com
-
-Health check: https://comp3011-cw1-habit-api.onrender.com/health
-
-Swagger UI: https://comp3011-cw1-habit-api.onrender.com/docs
-
-OpenAPI JSON: https://comp3011-cw1-habit-api.onrender.com/openapi.json
+## Links
+- Deployed API URL: https://comp3011-cw1-habit-api.onrender.com
+- Health check: https://comp3011-cw1-habit-api.onrender.com/health
+- Swagger UI: https://comp3011-cw1-habit-api.onrender.com/docs
+- OpenAPI JSON: https://comp3011-cw1-habit-api.onrender.com/openapi.json
