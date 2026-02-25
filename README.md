@@ -60,7 +60,6 @@ GenAI declaration + logs: ai-logs/
 GenAI (GREEN assessment)
 
 This is a GREEN assessment. All GenAI tools used will be declared with purpose and examples.
-
 GenAI declaration and exported logs are stored in: ai-logs/
 
 Links
