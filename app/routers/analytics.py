@@ -31,8 +31,12 @@ def _parse_week(week: str) -> tuple[int, int]:
 def weekly_summary(week: str, db: Session = Depends(get_db)):
     year, week_num = _parse_week(week)
 
-    start = date.fromisocalendar(year, week_num, 1)
-    end = date.fromisocalendar(year, week_num, 7)
+    # ✅ Fix: invalid ISO week should be a 400, not a crash (500)
+    try:
+        start = date.fromisocalendar(year, week_num, 1)
+        end = date.fromisocalendar(year, week_num, 7)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid ISO week: {week}")
 
     habits = db.query(Habit).order_by(Habit.id.asc()).all()
 
