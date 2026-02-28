@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from alembic import command
@@ -41,20 +42,22 @@ def apply_schema_on_startup() -> None:
         print("❌ create_all failed:", repr(e))
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    apply_schema_on_startup()
+    yield
+
+
 app = FastAPI(
     title="Habit & Productivity Analytics API",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # Register routers
 app.include_router(habits_router)
 app.include_router(logs_router)
 app.include_router(analytics_router)
-
-
-@app.on_event("startup")
-def startup_event():
-    apply_schema_on_startup()
 
 
 @app.get("/health", tags=["health"])
