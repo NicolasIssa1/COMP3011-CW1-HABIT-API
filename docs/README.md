@@ -41,43 +41,60 @@ This folder contains all required deliverables for the COMP3011 coursework submi
 ## 🔗 Quick Links
 
 - **GitHub Repository:** https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API
-- **API Docs:** See `api_documentation.pdf`
-- **Technical Report:** See `TECHNICAL_REPORT.pdf`
-- **Presentation:** See `PRESENTATION.pptx`
+- **Live API (Render):** https://comp3011-cw1-habit-api.onrender.com
+- **Interactive API Docs:** https://comp3011-cw1-habit-api.onrender.com/docs
+- **Health Check:** https://comp3011-cw1-habit-api.onrender.com/health
 
 ---
 
 ## 🚀 Quick Start
 
-### **1. Review Documentation**
-```bash
-# Technical Report
-open TECHNICAL_REPORT.pdf
+### **Option 1: Test Live API (No Installation Required) ⭐ EASIEST**
 
-# API Documentation
-open api_documentation.pdf
+Simply visit the live deployment on Render:
 
-# GenAI Declaration
-open GENAI_DECLARATION.pdf
+**Interactive API Docs (Swagger UI):**
+```
+https://comp3011-cw1-habit-api.onrender.com/docs
 ```
 
-### **2. Run the Code**
+**Try it now:**
+- Open the Swagger UI link above
+- Click on any endpoint (e.g., `GET /habits`)
+- Click "Try it out"
+- Click "Execute"
+- See live responses
+
+No installation, no setup needed! ✅
+
+---
+
+### **Option 2: Run Locally (For Testing & Development)**
+
 ```bash
 git clone https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API.git
 cd COMP3011-CW1-HABIT-API
 
-# Install & run
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
 pip install -r requirements.txt
-python -m pytest -v                    # Run tests (10/10 ✅)
+alembic upgrade head
 python -m uvicorn app.main:app --reload
 
-# View API docs
-open http://localhost:8000/docs
+# Run tests
+python -m pytest -v
 ```
 
-### **3. Check Git History**
+Visit: http://localhost:8000/docs
+
+---
+
+### **Option 3: Review Documentation**
 ```bash
-git log --oneline | head -20
+open TECHNICAL_REPORT.pdf
+open api_documentation.pdf
+open GENAI_DECLARATION.pdf
 ```
 
 ---
@@ -90,6 +107,7 @@ git log --oneline | head -20
 - [x] Presentation Slides (PPTX)
 - [x] GenAI Declaration (with evidence)
 - [x] Tests (10/10 passing)
+- [x] Live Deployment (Render)
 
 ---
 
@@ -103,6 +121,7 @@ git log --oneline | head -20
 | **Git Commits** | 20+ with history |
 | **Code Quality** | Clean, modular |
 | **GenAI Usage** | Fully disclosed |
+| **Live Deployment** | ✅ Render |
 
 ---
 
@@ -113,8 +132,22 @@ git log --oneline | head -20
 - **Validation:** Pydantic 2.12.5
 - **Database:** SQLite (dev) / PostgreSQL (prod)
 - **Testing:** Pytest 9.0.2
+- **Hosting:** Render (PaaS)
+
+---
+
+## 🌐 Deployment
+
+**Live URL:** https://comp3011-cw1-habit-api.onrender.com
+
+- ✅ Hosted on Render
+- ✅ PostgreSQL database
+- ✅ HTTPS enabled
+- ✅ Auto-deployed from GitHub
+- ✅ Health checks operational
 
 ---
 
 **Status:** ✅ READY FOR SUBMISSION  
-**Deadline:** 13 March 2026
+**Deadline:** 13 March 2026  
+**Deployment:** ✅ LIVE
