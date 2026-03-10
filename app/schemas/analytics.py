@@ -1,20 +1,22 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class StreakOut(BaseModel):
-    habit_id: int
-    current_streak: int
-    longest_streak: int
-    total_completions: int
+    model_config = ConfigDict(from_attributes=True)
+    
+    habit_id: int = Field(..., description="ID of the habit")
+    current_streak: int = Field(..., description="Current consecutive days completed")
+    longest_streak: int = Field(..., description="Longest streak achieved")
+    total_completions: int = Field(..., description="Total number of completions")
 
 
 class WeeklySummaryItem(BaseModel):
-    habit_id: int
-    habit_name: str
-    completions: int
+    habit_id: int = Field(..., description="ID of the habit")
+    habit_name: str = Field(..., description="Name of the habit")
+    completions: int = Field(..., description="Number of completions this week")
 
 
 class WeeklySummaryOut(BaseModel):
-    week: str
-    items: list[WeeklySummaryItem]
-    total_completions: int
+    week: str = Field(..., description="Week in YYYY-WW format")
+    items: list[WeeklySummaryItem] = Field(..., description="List of habits and their completions")
+    total_completions: int = Field(..., description="Total completions across all habits this week")

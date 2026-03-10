@@ -1,11 +1,13 @@
 import os
+import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
 
-from fastapi import FastAPI
-from alembic import command
-from alembic.config import Config
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-from app.core.config import DATABASE_URL
+from app.core.config import DATABASE_URL, ENVIRONMENT
 from app.db.base import Base
 from app.db.session import engine
 
@@ -13,33 +15,25 @@ from app.routers.habits import router as habits_router
 from app.routers.logs import router as logs_router
 from app.routers.analytics import router as analytics_router
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
 
 def apply_schema_on_startup() -> None:
-    """
-    Render Free has no Jobs, and SQLite paths can be tricky on ephemeral disks.
-    We do:
-      1) Alembic upgrade head (so migrations are used)
-      2) create_all safety net (guarantees tables exist for SQLite)
-    """
-    # Helpful debug info in Render logs
-    print("Startup: CWD =", os.getcwd())
-    print("Startup: DATABASE_URL =", DATABASE_URL)
+    """Create all tables if they don't exist."""
+    logger.info(f"Startup: CWD = {os.getcwd()}")
+    logger.info(f"Startup: DATABASE_URL = {DATABASE_URL}")
+    logger.info(f"Startup: ENVIRONMENT = {ENVIRONMENT}")
 
-    # 1) Try Alembic migrations
-    try:
-        alembic_cfg = Config("alembic.ini")
-        alembic_cfg.set_main_option("sqlalchemy.url", DATABASE_URL)
-        command.upgrade(alembic_cfg, "head")
-        print("✅ Alembic migrations applied (head).")
-    except Exception as e:
-        print("❌ Alembic upgrade failed:", repr(e))
-
-    # 2) Safety net: ensure tables exist (especially for SQLite on Render)
     try:
         Base.metadata.create_all(bind=engine)
-        print("✅ Base.metadata.create_all() ensured tables exist.")
+        logger.info("✅ Database tables created/verified.")
     except Exception as e:
-        print("❌ create_all failed:", repr(e))
+        logger.error(f"❌ Failed to create tables: {repr(e)}")
 
 
 @asynccontextmanager
@@ -50,9 +44,52 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Habit & Productivity Analytics API",
-    version="0.1.0",
+    version="1.0.0",
+    description="A comprehensive API for tracking habits, logging completions, and analyzing productivity patterns.",
+    contact={
+        "name": "API Support",
+        "email": "support@habitapi.dev"
+    },
+    license_info={
+        "name": "MIT",
+    },
     lifespan=lifespan,
 )
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Request logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = datetime.now()
+    
+    logger.info(f"→ {request.method} {request.url.path}")
+    
+    response = await call_next(request)
+    
+    process_time = (datetime.now() - start_time).total_seconds()
+    logger.info(f"← {request.method} {request.url.path} | Status: {response.status_code} | Time: {process_time:.3f}s")
+    
+    return response
+
+
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {repr(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error", "type": type(exc).__name__}
+    )
+
 
 # Register routers
 app.include_router(habits_router)
@@ -60,6 +97,22 @@ app.include_router(logs_router)
 app.include_router(analytics_router)
 
 
-@app.get("/health", tags=["health"])
+@app.get("/health", tags=["health"], summary="Health Check")
 def health_check():
-    return {"status": "ok"}
+    """Check if the API is running and healthy."""
+    return {
+        "status": "ok",
+        "timestamp": datetime.now().isoformat(),
+        "environment": ENVIRONMENT
+    }
+
+
+@app.get("/", tags=["root"], summary="API Info")
+def root():
+    """Root endpoint with API information."""
+    return {
+        "name": "Habit & Productivity Analytics API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "openapi": "/openapi.json"
+    }
