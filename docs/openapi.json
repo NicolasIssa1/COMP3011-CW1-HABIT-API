@@ -1,0 +1,1001 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Habit & Productivity Analytics API",
+        "description": "A comprehensive API for tracking habits, logging completions, and analyzing productivity patterns.",
+        "contact": {
+            "name": "API Support",
+            "email": "support@habitapi.dev"
+        },
+        "license": {
+            "name": "MIT"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/habits": {
+            "post": {
+                "tags": [
+                    "habits"
+                ],
+                "summary": "Create a new habit",
+                "description": "Create a new habit to track.",
+                "operationId": "create_habit_habits_post",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/HabitCreate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HabitOut"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "habits"
+                ],
+                "summary": "List all habits",
+                "description": "List all habits with optional filtering and pagination.",
+                "operationId": "list_habits_habits_get",
+                "parameters": [
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Number of items to skip",
+                            "default": 0,
+                            "title": "Skip"
+                        },
+                        "description": "Number of items to skip"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "description": "Number of items to return",
+                            "default": 20,
+                            "title": "Limit"
+                        },
+                        "description": "Number of items to return"
+                    },
+                    {
+                        "name": "is_active",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Filter by active status",
+                            "title": "Is Active"
+                        },
+                        "description": "Filter by active status"
+                    },
+                    {
+                        "name": "frequency",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Filter by frequency (daily, weekly, monthly)",
+                            "title": "Frequency"
+                        },
+                        "description": "Filter by frequency (daily, weekly, monthly)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of habits",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/HabitOut"
+                                    },
+                                    "title": "Response List Habits Habits Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/habits/{habit_id}": {
+            "get": {
+                "tags": [
+                    "habits"
+                ],
+                "summary": "Get a specific habit",
+                "description": "Retrieve a specific habit by ID.",
+                "operationId": "get_habit_habits__habit_id__get",
+                "parameters": [
+                    {
+                        "name": "habit_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Habit Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HabitOut"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Habit not found"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "habits"
+                ],
+                "summary": "Update a habit",
+                "description": "Update a habit's details.",
+                "operationId": "update_habit_habits__habit_id__patch",
+                "parameters": [
+                    {
+                        "name": "habit_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Habit Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/HabitUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HabitOut"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Habit not found"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "habits"
+                ],
+                "summary": "Delete a habit",
+                "description": "Delete a habit and all its associated logs.",
+                "operationId": "delete_habit_habits__habit_id__delete",
+                "parameters": [
+                    {
+                        "name": "habit_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Habit Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful Response"
+                    },
+                    "404": {
+                        "description": "Habit not found"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/habits/{habit_id}/logs": {
+            "post": {
+                "tags": [
+                    "logs"
+                ],
+                "summary": "Log a habit completion",
+                "description": "Log the completion of a habit on a specific date.",
+                "operationId": "create_log_habits__habit_id__logs_post",
+                "parameters": [
+                    {
+                        "name": "habit_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Habit Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/HabitLogCreate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HabitLogOut"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Log already exists for this date"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "logs"
+                ],
+                "summary": "List habit logs",
+                "description": "List all logs for a specific habit with optional date filtering.",
+                "operationId": "list_logs_habits__habit_id__logs_get",
+                "parameters": [
+                    {
+                        "name": "habit_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Habit Id"
+                        }
+                    },
+                    {
+                        "name": "from_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "format": "date"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Start date (inclusive)",
+                            "title": "From Date"
+                        },
+                        "description": "Start date (inclusive)"
+                    },
+                    {
+                        "name": "to_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "format": "date"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "End date (inclusive)",
+                            "title": "To Date"
+                        },
+                        "description": "End date (inclusive)"
+                    },
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Number of items to skip",
+                            "default": 0,
+                            "title": "Skip"
+                        },
+                        "description": "Number of items to skip"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "description": "Number of items to return",
+                            "default": 20,
+                            "title": "Limit"
+                        },
+                        "description": "Number of items to return"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/HabitLogOut"
+                                    },
+                                    "title": "Response List Logs Habits  Habit Id  Logs Get"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Habit not found"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/habits/{habit_id}/logs/{log_id}": {
+            "delete": {
+                "tags": [
+                    "logs"
+                ],
+                "summary": "Delete a log entry",
+                "description": "Delete a specific log entry for a habit.",
+                "operationId": "delete_log_habits__habit_id__logs__log_id__delete",
+                "parameters": [
+                    {
+                        "name": "habit_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Habit Id"
+                        }
+                    },
+                    {
+                        "name": "log_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Log Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful Response"
+                    },
+                    "404": {
+                        "description": "Log not found"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/habits/{habit_id}/streak": {
+            "get": {
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get habit streak statistics",
+                "description": "Get current streak, longest streak, and total completions for a habit.",
+                "operationId": "get_streak_habits__habit_id__streak_get",
+                "parameters": [
+                    {
+                        "name": "habit_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Habit Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StreakOut"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Habit not found"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/weekly-summary": {
+            "get": {
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get weekly summary of all habits",
+                "description": "Get a summary of all habits' completions for a specific week (ISO week format).",
+                "operationId": "weekly_summary_analytics_weekly_summary_get",
+                "parameters": [
+                    {
+                        "name": "week",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "description": "Week in YYYY-WW or YYYY-WWW format (e.g. 2026-09)",
+                            "title": "Week"
+                        },
+                        "description": "Week in YYYY-WW or YYYY-WWW format (e.g. 2026-09)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeeklySummaryOut"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid week format"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health Check",
+                "description": "Check if the API is running and healthy.",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/": {
+            "get": {
+                "tags": [
+                    "root"
+                ],
+                "summary": "API Info",
+                "description": "Root endpoint with API information.",
+                "operationId": "root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "HabitCreate": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "Name of the habit"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 500
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "Description of the habit"
+                    },
+                    "frequency": {
+                        "$ref": "#/components/schemas/HabitFrequency",
+                        "description": "Frequency of the habit",
+                        "default": "daily"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "title": "HabitCreate"
+            },
+            "HabitFrequency": {
+                "type": "string",
+                "enum": [
+                    "daily",
+                    "weekly",
+                    "monthly"
+                ],
+                "title": "HabitFrequency"
+            },
+            "HabitLogCreate": {
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Date",
+                        "description": "Date of habit completion"
+                    },
+                    "notes": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 500
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Notes",
+                        "description": "Optional notes about the completion"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "date"
+                ],
+                "title": "HabitLogCreate"
+            },
+            "HabitLogOut": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "habit_id": {
+                        "type": "integer",
+                        "title": "Habit Id"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Date"
+                    },
+                    "notes": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Notes"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "habit_id",
+                    "date",
+                    "notes"
+                ],
+                "title": "HabitLogOut"
+            },
+            "HabitOut": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "frequency": {
+                        "$ref": "#/components/schemas/HabitFrequency"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Is Active"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "frequency",
+                    "is_active",
+                    "created_at"
+                ],
+                "title": "HabitOut"
+            },
+            "HabitUpdate": {
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 120,
+                                "minLength": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name",
+                        "description": "Updated habit name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 500
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "Updated description"
+                    },
+                    "frequency": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/HabitFrequency"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Updated frequency"
+                    },
+                    "is_active": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Is Active",
+                        "description": "Whether the habit is active"
+                    }
+                },
+                "type": "object",
+                "title": "HabitUpdate"
+            },
+            "StreakOut": {
+                "properties": {
+                    "habit_id": {
+                        "type": "integer",
+                        "title": "Habit Id",
+                        "description": "ID of the habit"
+                    },
+                    "current_streak": {
+                        "type": "integer",
+                        "title": "Current Streak",
+                        "description": "Current consecutive days completed"
+                    },
+                    "longest_streak": {
+                        "type": "integer",
+                        "title": "Longest Streak",
+                        "description": "Longest streak achieved"
+                    },
+                    "total_completions": {
+                        "type": "integer",
+                        "title": "Total Completions",
+                        "description": "Total number of completions"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "habit_id",
+                    "current_streak",
+                    "longest_streak",
+                    "total_completions"
+                ],
+                "title": "StreakOut"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    },
+                    "input": {
+                        "title": "Input"
+                    },
+                    "ctx": {
+                        "type": "object",
+                        "title": "Context"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            },
+            "WeeklySummaryItem": {
+                "properties": {
+                    "habit_id": {
+                        "type": "integer",
+                        "title": "Habit Id",
+                        "description": "ID of the habit"
+                    },
+                    "habit_name": {
+                        "type": "string",
+                        "title": "Habit Name",
+                        "description": "Name of the habit"
+                    },
+                    "completions": {
+                        "type": "integer",
+                        "title": "Completions",
+                        "description": "Number of completions this week"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "habit_id",
+                    "habit_name",
+                    "completions"
+                ],
+                "title": "WeeklySummaryItem"
+            },
+            "WeeklySummaryOut": {
+                "properties": {
+                    "week": {
+                        "type": "string",
+                        "title": "Week",
+                        "description": "Week in YYYY-WW format"
+                    },
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/WeeklySummaryItem"
+                        },
+                        "type": "array",
+                        "title": "Items",
+                        "description": "List of habits and their completions"
+                    },
+                    "total_completions": {
+                        "type": "integer",
+                        "title": "Total Completions",
+                        "description": "Total completions across all habits this week"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "week",
+                    "items",
+                    "total_completions"
+                ],
+                "title": "WeeklySummaryOut"
+            }
+        }
+    }
+}
