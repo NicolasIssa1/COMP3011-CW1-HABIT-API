@@ -4,6 +4,31 @@
 
 The Habit Dashboard is a minimal, responsive single-page application (SPA) built with vanilla HTML, CSS, and JavaScript. It provides a user-friendly interface to interact with the Habit & Productivity Analytics API.
 
+**Important:** The dashboard (`/ui/`) is a **frontend consumer** of the same backend API that powers the Swagger docs (`/docs`). Everything it does goes through the `/api/...` routes.
+
+## Quick Architecture
+
+```
+You (User)
+  ↓
+/ui/ Dashboard (HTML/CSS/JavaScript)
+  ↓
+/api/habits, /api/analytics/... (Backend routes)
+  ↓
+Database
+```
+
+When you **Create a Habit** in the dashboard:
+```
+1. You fill the form (name, description, frequency)
+2. Click "Create Habit"
+3. Dashboard sends: POST /api/habits (with X-API-Key header)
+4. Backend creates habit and returns it
+5. Dashboard shows it in list
+```
+
+**Same flow for all operations** (list, delete, mark done, view stats).
+
 ## Accessing the Dashboard
 
 Once the API is running, access the dashboard at:
@@ -15,8 +40,14 @@ http://localhost:8000/ui/
 Or on Render:
 
 ```
-https://your-api-url/ui/
+https://comp3011-cw1-habit-api.onrender.com/ui/
 ```
+
+**Authentication:** Default API key `test-api-key-12345` is pre-filled. You can change it at the top of the page if needed.
+
+**Related Resources:**
+- **Test endpoints directly:** http://localhost:8000/docs (Swagger UI)
+- **Call API from code:** Use `/api/habits`, `/api/analytics/...` with `X-API-Key` header
 
 ## Features
 
@@ -114,44 +145,61 @@ Frequency: Daily
 
 ### Architecture
 
+The dashboard communicates with the backend via REST API calls:
+
 ```
-app.js
-├── API Requests (fetch)
-│   ├── GET /habits
-│   ├── POST /habits
-│   ├── DELETE /habits/{id}
-│   ├── POST /habits/{id}/logs
-│   └── GET /habits/{id}/streak
+Dashboard (app.js)
+├─ API_BASE = "/api"
 │
-├── DOM Manipulation
-│   ├── renderHabits()
-│   ├── updateHabitSelect()
-│   └── loadAnalytics()
+├─ GET /api/habits
+├─ POST /api/habits (create)
+├─ DELETE /api/habits/{id} (delete)
+├─ POST /api/habits/{id}/logs (mark done)
+├─ GET /api/habits/{id}/streak (get stats)
+├─ GET /api/analytics/weekly-summary
 │
-└── Event Listeners
-    ├── createHabitForm submit
-    ├── habitSelect change
-    └── searchInput input
+└─ All endpoints include X-API-Key header
+    └─ headers: { X-API-Key: <value from input> }
 ```
 
-### API Key Handling
+**Same Endpoints Tested In:**
+- **`/docs`** (Swagger UI) — Try manually
+- **`/ui/`** (Dashboard) — Try via buttons
+- **Raw API** — Call from code
 
-- Key is read from input field on every request
-- Included in `X-API-Key` header
-- Default: `test-api-key-12345`
-
-### Data Flow
+### How Data Flows
 
 ```
-User Input
+User Input (form submit, button click)
     ↓
-Event Handler
+Event Handler in app.js
     ↓
-API Request (with X-API-Key header)
+Validate & prepare data
     ↓
-Server Response
+Call apiRequest(method, endpoint, body)
     ↓
-Render/Message
+Fetch API (with X-API-Key header)
+    ↓
+Backend processes at /api/...
+    ↓
+Return JSON response
+    ↓
+Display result or error message
+```
+
+## Technical Details: API Key Handling
+
+**Read from:** Input field at top of page (default: `test-api-key-12345`)  
+**Included in:** Every request in `X-API-Key` header  
+**Expires:** Never (for development)  
+**Production:** Use environment variable instead  
+
+All API calls use this header:
+```javascript
+headers: {
+    "X-API-Key": getApiKey(),
+    "Content-Type": "application/json"
+}
 ```
 
 ## Responsive Design

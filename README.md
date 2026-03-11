@@ -74,6 +74,30 @@ This API allows a client to:
 └── alembic.ini
 ```
 
+## Architecture Overview
+
+This project has **three distinct interfaces** that all communicate with the same backend API:
+
+```
+Backend API (FastAPI)
+    ↓
+    ├─ Raw API Routes: /api/habits, /api/analytics/...
+    │  └─ Accessed directly for programmatic consumption
+    │
+    ├─ Swagger/OpenAPI UI: /docs
+    │  └─ Interactive documentation for testing endpoint
+    │
+    └─ Web Dashboard: /ui/
+       └─ Single-page app (vanilla HTML/CSS/JS)
+          └─ Consumes same /api/... routes under the hood
+```
+
+**Key Points:**
+- **Backend routes** (prefixed `/api`) are the single source of truth
+- **`/docs`** (Swagger UI) lets you test `/api/...` endpoints directly
+- **`/ui/`** (dashboard) is a frontend layer that calls the same `/api/...` endpoints
+- **Authentication** (API key in `X-API-Key` header) applies to all three
+
 ## Run locally
 
 ### 1. Setup
@@ -104,16 +128,96 @@ alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
 
-#### Access the app:
-- **Dashboard:** http://localhost:8000/ui/
-- **Swagger Docs:** http://localhost:8000/docs
-- **Health Check:** http://localhost:8000/health
+### 4. Access the three interfaces
 
-### 4. Run tests
+**a) Web Dashboard (recommended for quick demo):**
+```
+http://localhost:8000/ui/
+```
+- Default API key: `test-api-key-12345` (pre-filled)
+- Create, list, delete habits through the UI
+- All actions call `/api/...` routes internally
+
+**b) Interactive API Docs (for endpoint testing):**
+```
+http://localhost:8000/docs
+```
+- Swagger UI auto-generated from FastAPI
+- Test each endpoint directly with custom payloads
+- Same authentication required (X-API-Key header)
+
+**c) Raw API (for programmatic access):**
+```
+http://localhost:8000/api/habits
+```
+Example with curl:
+```bash
+curl -H "X-API-Key: test-api-key-12345" \
+  http://localhost:8000/api/habits
+```
+
+**d) Health Check:**
+```
+http://localhost:8000/health
+```
+(no authentication required)
+
+### 5. Run tests
 
 ```bash
 python -m pytest -v
 ```
+
+This validates all 14 tests (CRUD, auth, analytics) ✅
+
+## How It Works: Frontend → Backend
+
+When you use the **`/ui/` dashboard**, here's what happens behind the scenes:
+
+### Example: Create a Habit
+
+**UI Form:**
+```
+User fills form (name, description, frequency) → Clicks "Create Habit"
+```
+
+**Frontend Code (app.js):**
+```javascript
+// Calls backend API route
+POST /api/habits
+Body: { name, description, frequency }
+Headers: { X-API-Key: test-api-key-12345 }
+```
+
+**Backend (routers/habits.py):**
+```python
+@router.post("/habits")  # Mounted at /api prefix
+def create_habit(habit: HabitCreate, api_key: str = Depends(verify_api_key)):
+    # Create and return habit
+```
+
+**Response:**
+```json
+{ "id": 1, "name": "Morning Exercise", ... }
+```
+
+**UI Update:**
+```
+Habit appears in the list, form clears, success message shown
+```
+
+### All Frontend Endpoints
+
+| Feature | Frontend Call | Backend Endpoint | Mounted At |
+|---------|---------------|------------------|------------|
+| List habits | GET `/api/habits` | `routers/habits.py` | `/api` |
+| Create habit | POST `/api/habits` | `routers/habits.py` | `/api` |
+| Delete habit | DELETE `/api/habits/{id}` | `routers/habits.py` | `/api` |
+| Log completion | POST `/api/habits/{id}/logs` | `routers/logs.py` | `/api` |
+| Get streak | GET `/api/habits/{id}/streak` | `routers/analytics.py` | `/api` |
+| Weekly summary | GET `/api/analytics/weekly-summary` | `routers/analytics.py` | `/api` |
+
+**All require:** `X-API-Key: test-api-key-12345` header
 
 ## Quick Demo (5 minutes)
 
@@ -123,58 +227,58 @@ python -m pytest -v
 4. **Mark it done:** Click "✓ Mark Done Today"
 5. **View streak:** Click "📊 Stats" → See current streak
 6. **Try another:** Create & complete multiple habits
+7. **Or test directly:** Open http://localhost:8000/docs and try endpoints
 
-Front-end demonstrates:
-- ✅ API consumption (all endpoints)
-- ✅ Error handling (409 duplicate, 401/403 auth)
-- ✅ Real-time UI updates
-- ✅ Full CRUD workflow
-- ✅ Analytics visualization
+Both `/ui/` and `/docs` call the same backend `/api/...` routes ✅
 
 ## API Endpoints
 
 ### Authentication
 
-All endpoints below require the `X-API-Key` header:
+All `/api/...` endpoints require the `X-API-Key` header:
 
 ```bash
-curl -H "X-API-Key: test-api-key-12345" http://localhost:8000/habits
+curl -H "X-API-Key: test-api-key-12345" http://localhost:8000/api/habits
 ```
 
 **Public endpoints** (no auth required):
 - `GET /` — API info
 - `GET /health` — Health check
 
+**Authenticated endpoints** (require `X-API-Key: test-api-key-12345`):
+- All `/api/habits` routes
+- All `/api/analytics` routes
+
 ### Habits
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/habits` | Create habit |
-| GET | `/habits` | List habits (paginated, filterable) |
-| GET | `/habits/{id}` | Get habit details |
-| PATCH | `/habits/{id}` | Update habit |
-| DELETE | `/habits/{id}` | Delete habit |
+| POST | `/api/habits` | Create habit |
+| GET | `/api/habits` | List habits (paginated, filterable) |
+| GET | `/api/habits/{id}` | Get habit details |
+| PATCH | `/api/habits/{id}` | Update habit |
+| DELETE | `/api/habits/{id}` | Delete habit |
 
 ### Logs
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/habits/{id}/logs` | Log completion |
-| GET | `/habits/{id}/logs` | List logs (date filterable) |
-| DELETE | `/habits/{id}/logs/{log_id}` | Delete log |
+| POST | `/api/habits/{id}/logs` | Log completion |
+| GET | `/api/habits/{id}/logs` | List logs (date filterable) |
+| DELETE | `/api/habits/{id}/logs/{log_id}` | Delete log |
 
 ### Analytics
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/habits/{id}/streak` | Get streak stats (current, longest, total) |
-| GET | `/analytics/weekly-summary` | Weekly completion summary |
+| GET | `/api/habits/{id}/streak` | Get streak stats (current, longest, total) |
+| GET | `/api/analytics/weekly-summary` | Weekly completion summary |
 
 **Full details:** See `/docs/api_documentation.pdf`
 
 ## Testing
 
-✅ **13/13 tests passing** (includes 3 new auth tests)
+✅ **14/14 tests passing**
 
 ```bash
 python -m pytest -v
@@ -186,6 +290,7 @@ Tests cover:
 - ✅ Weekly analytics
 - ✅ API key authentication (missing, invalid, valid)
 - ✅ Error handling (404, 409, 401, 403)
+- ✅ Frontend consumption of `/api/...` routes
 
 ## Deployment
 

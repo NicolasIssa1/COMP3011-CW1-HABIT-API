@@ -40,36 +40,83 @@ This folder contains all required deliverables for the COMP3011 coursework submi
 
 ## 🔗 Quick Links
 
+### Local Development (after running `python -m uvicorn app.main:app --reload`)
+- **Web Dashboard:** http://localhost:8000/ui/ (frontend UI)
+- **Swagger Docs:** http://localhost:8000/docs (API testing)
+- **Raw API:** http://localhost:8000/api/habits (programmatic access)
+- **Health Check:** http://localhost:8000/health (no auth needed)
+
+### Live Deployment on Render
 - **GitHub Repository:** https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API
-- **Live API (Render):** https://comp3011-cw1-habit-api.onrender.com
-- **Interactive API Docs:** https://comp3011-cw1-habit-api.onrender.com/docs
+- **Live API:** https://comp3011-cw1-habit-api.onrender.com
+- **Web Dashboard:** https://comp3011-cw1-habit-api.onrender.com/ui/
+- **Swagger Docs:** https://comp3011-cw1-habit-api.onrender.com/docs
 - **Health Check:** https://comp3011-cw1-habit-api.onrender.com/health
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Three Options)
 
-### **Option 1: Test Live API (No Installation Required) ⭐ EASIEST**
+### **Option 1: Web Dashboard (Recommended for Quick Demo) ⭐**
 
-Simply visit the live deployment on Render:
+The **graphical dashboard** at `/ui/` is the most user-friendly way to interact:
 
-**Interactive API Docs (Swagger UI):**
+**Local:**
+```
+http://localhost:8000/ui/
+```
+
+**Live:**
+```
+https://comp3011-cw1-habit-api.onrender.com/ui/
+```
+
+**What you get:**
+- ✅ Beautiful, responsive interface
+- ✅ Create, list, delete habits with buttons
+- ✅ Real-time search and filtering
+- ✅ View habit streaks and analytics
+- ✅ Default API key pre-filled: `test-api-key-12345`
+- ✅ All requests go to `/api/...` routes under the hood
+
+**No installation needed** — just open the link!
+
+---
+
+### **Option 2: Interactive API Docs (For Endpoint Testing)**
+
+The **Swagger UI** at `/docs` lets you test each endpoint directly:
+
+**Local:**
+```
+http://localhost:8000/docs
+```
+
+**Live:**
 ```
 https://comp3011-cw1-habit-api.onrender.com/docs
 ```
 
-**Try it now:**
-- Open the Swagger UI link above
-- Click on any endpoint (e.g., `GET /habits`)
-- Click "Try it out"
-- Click "Execute"
-- See live responses
+**What you get:**
+- ✅ Auto-generated OpenAPI documentation
+- ✅ "Try it out" button for each endpoint
+- ✅ Fill in request body, see response
+- ✅ See all endpoint details, parameters, schemas
+- ✅ Test authentication and error responses
 
-No installation, no setup needed! ✅
+**How to use:**
+1. Open the Swagger link above
+2. Click on any endpoint (e.g., `GET /api/habits`)
+3. Click "Try it out"
+4. Enter request body if needed
+5. Click "Execute"
+6. See live response
 
 ---
 
-### **Option 2: Run Locally (For Testing & Development)**
+### **Option 3: Run Locally (For Development & Testing)**
+
+Clone and run the full application locally:
 
 ```bash
 git clone https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API.git
@@ -81,20 +128,39 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 alembic upgrade head
 python -m uvicorn app.main:app --reload
+```
 
+Then access all three interfaces:
+- **Dashboard:** http://localhost:8000/ui/
+- **Swagger Docs:** http://localhost:8000/docs
+- **Raw API:** http://localhost:8000/api/habits
+
+```bash
 # Run tests
 python -m pytest -v
 ```
 
-Visit: http://localhost:8000/docs
-
 ---
 
-### **Option 3: Review Documentation**
-```bash
-open TECHNICAL_REPORT.pdf
-open api_documentation.pdf
-open GENAI_DECLARATION.pdf
+### **All Three Interfaces Use The Same API**
+
+```
+┌─────────────────────────────────────┐
+│   Backend API (/api/...routes)      │
+│  - All business logic here           │
+│  - Database operations               │
+│  - Authentication required           │
+└──────────────┬──────────────────────┘
+               │
+       ┌───────┴────────┬───────────┐
+       │                │           │
+   ┌───▼──────┐  ┌──────▼──┐  ┌───▼────┐
+   │  /docs   │  │  /ui/   │  │ /api/  │
+   │ (Swagger)│  │(Frontend)│  │(Raw)   │
+   └──────────┘  └─────────┘  └────────┘
+
+All three access the exact same backend endpoints.
+Authentication and business logic are identical.
 ```
 
 ---
