@@ -5,6 +5,7 @@ from app.db.session import get_db
 from app.models.habit import Habit
 from app.schemas.habit import HabitCreate, HabitOut, HabitUpdate
 from app.core.config import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from app.core.security import verify_api_key
 
 router = APIRouter(prefix="/habits", tags=["habits"])
 
@@ -14,9 +15,9 @@ router = APIRouter(prefix="/habits", tags=["habits"])
     response_model=HabitOut,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new habit",
-    responses={400: {"description": "Invalid input"}}
+    responses={400: {"description": "Invalid input"}, 401: {"description": "Missing API key"}, 403: {"description": "Invalid API key"}}
 )
-def create_habit(payload: HabitCreate, db: Session = Depends(get_db)):
+def create_habit(payload: HabitCreate, db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
     """Create a new habit to track."""
     habit = Habit(
         name=payload.name.strip(),
@@ -33,14 +34,15 @@ def create_habit(payload: HabitCreate, db: Session = Depends(get_db)):
     "",
     response_model=list[HabitOut],
     summary="List all habits",
-    responses={200: {"description": "List of habits"}}
+    responses={200: {"description": "List of habits"}, 401: {"description": "Missing API key"}, 403: {"description": "Invalid API key"}}
 )
 def list_habits(
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE, description="Number of items to return"),
     is_active: bool | None = Query(None, description="Filter by active status"),
     frequency: str | None = Query(None, description="Filter by frequency (daily, weekly, monthly)"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key)
 ):
     """List all habits with optional filtering and pagination."""
     query = db.query(Habit)
@@ -58,9 +60,9 @@ def list_habits(
     "/{habit_id}",
     response_model=HabitOut,
     summary="Get a specific habit",
-    responses={404: {"description": "Habit not found"}}
+    responses={404: {"description": "Habit not found"}, 401: {"description": "Missing API key"}, 403: {"description": "Invalid API key"}}
 )
-def get_habit(habit_id: int, db: Session = Depends(get_db)):
+def get_habit(habit_id: int, db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
     """Retrieve a specific habit by ID."""
     habit = db.query(Habit).filter(Habit.id == habit_id).first()
     if not habit:
@@ -72,12 +74,13 @@ def get_habit(habit_id: int, db: Session = Depends(get_db)):
     "/{habit_id}",
     response_model=HabitOut,
     summary="Update a habit",
-    responses={404: {"description": "Habit not found"}}
+    responses={404: {"description": "Habit not found"}, 401: {"description": "Missing API key"}, 403: {"description": "Invalid API key"}}
 )
 def update_habit(
     habit_id: int,
     payload: HabitUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key)
 ):
     """Update a habit's details."""
     habit = db.query(Habit).filter(Habit.id == habit_id).first()
@@ -101,9 +104,9 @@ def update_habit(
     "/{habit_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a habit",
-    responses={404: {"description": "Habit not found"}}
+    responses={404: {"description": "Habit not found"}, 401: {"description": "Missing API key"}, 403: {"description": "Invalid API key"}}
 )
-def delete_habit(habit_id: int, db: Session = Depends(get_db)):
+def delete_habit(habit_id: int, db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
     """Delete a habit and all its associated logs."""
     habit = db.query(Habit).filter(Habit.id == habit_id).first()
     if not habit:

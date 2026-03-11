@@ -8,6 +8,7 @@ from app.models.habit import Habit
 from app.models.habit_log import HabitLog
 from app.schemas.habit_log import HabitLogCreate, HabitLogOut
 from app.core.config import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from app.core.security import verify_api_key
 
 router = APIRouter(prefix="/habits/{habit_id}/logs", tags=["logs"])
 
@@ -23,9 +24,9 @@ def _ensure_habit_exists(habit_id: int, db: Session) -> None:
     response_model=HabitLogOut,
     status_code=status.HTTP_201_CREATED,
     summary="Log a habit completion",
-    responses={409: {"description": "Log already exists for this date"}},
+    responses={409: {"description": "Log already exists for this date"}, 401: {"description": "Missing API key"}, 403: {"description": "Invalid API key"}},
 )
-def create_log(habit_id: int, payload: HabitLogCreate, db: Session = Depends(get_db)):
+def create_log(habit_id: int, payload: HabitLogCreate, db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
     """Log the completion of a habit on a specific date."""
     _ensure_habit_exists(habit_id, db)
 
@@ -52,7 +53,7 @@ def create_log(habit_id: int, payload: HabitLogCreate, db: Session = Depends(get
     "",
     response_model=list[HabitLogOut],
     summary="List habit logs",
-    responses={404: {"description": "Habit not found"}},
+    responses={404: {"description": "Habit not found"}, 401: {"description": "Missing API key"}, 403: {"description": "Invalid API key"}},
 )
 def list_logs(
     habit_id: int,
@@ -61,6 +62,7 @@ def list_logs(
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE, description="Number of items to return"),
     db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key),
 ):
     """List all logs for a specific habit with optional date filtering."""
     _ensure_habit_exists(habit_id, db)
@@ -79,9 +81,9 @@ def list_logs(
     "/{log_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a log entry",
-    responses={404: {"description": "Log not found"}},
+    responses={404: {"description": "Log not found"}, 401: {"description": "Missing API key"}, 403: {"description": "Invalid API key"}},
 )
-def delete_log(habit_id: int, log_id: int, db: Session = Depends(get_db)):
+def delete_log(habit_id: int, log_id: int, db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
     """Delete a specific log entry for a habit."""
     _ensure_habit_exists(habit_id, db)
 

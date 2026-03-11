@@ -17,6 +17,21 @@ def _setup_test_db():
     Base.metadata.drop_all(bind=engine)
 
 
+class AuthenticatedTestClient(TestClient):
+    """Test client that automatically adds API key to all requests."""
+    
+    def request(self, *args, **kwargs):
+        """Override request to add API key header."""
+        if "headers" not in kwargs:
+            kwargs["headers"] = {}
+        elif kwargs["headers"] is None:
+            kwargs["headers"] = {}
+        
+        kwargs["headers"]["X-API-Key"] = "test-api-key-12345"
+        return super().request(*args, **kwargs)
+
+
 @pytest.fixture()
 def client():
-    return TestClient(app)
+    """Create a test client with API key authentication header."""
+    return AuthenticatedTestClient(app)

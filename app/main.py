@@ -6,6 +6,7 @@ from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import DATABASE_URL, ENVIRONMENT
 from app.db.base import Base
@@ -95,6 +96,15 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(habits_router)
 app.include_router(logs_router)
 app.include_router(analytics_router)
+
+
+# Serve static files (front-end)
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(static_dir):
+    app.mount("/ui", StaticFiles(directory=static_dir, html=True), name="static")
+    logger.info(f"✅ Static files mounted at /ui from {static_dir}")
+else:
+    logger.warning(f"Static directory not found at {static_dir}")
 
 
 @app.get("/health", tags=["health"], summary="Health Check")
