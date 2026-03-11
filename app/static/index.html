@@ -3,365 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habit & Productivity Dashboard</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            padding: 20px;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        
-        .api-key-section {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .api-key-section label {
-            font-weight: 600;
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-        }
-        
-        .api-key-section input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            font-size: 1em;
-            font-family: monospace;
-        }
-        
-        .api-key-section input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .api-key-hint {
-            font-size: 0.85em;
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
-        }
-        
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card h2 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.95em;
-            font-family: inherit;
-        }
-        
-        .form-group textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95em;
-            transition: background 0.3s;
-        }
-        
-        button:hover { background: #5568d3; }
-        button:active { background: #4a5ac2; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        
-        .btn-secondary {
-            background: #6c757d;
-        }
-        
-        .btn-secondary:hover { background: #5a6268; }
-        
-        .btn-success {
-            background: #28a745;
-        }
-        
-        .btn-success:hover { background: #218838; }
-        
-        .btn-danger {
-            background: #dc3545;
-        }
-        
-        .btn-danger:hover { background: #c82333; }
-        
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 0.85em;
-        }
-        
-        .habits-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .habit-item {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .habit-item.loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-        
-        .habit-info h3 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .habit-meta {
-            font-size: 0.85em;
-            color: #666;
-        }
-        
-        .habit-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .message {
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            display: none;
-        }
-        
-        .message.show { display: block; }
-        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .message.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .no-habits {
-            text-align: center;
-            color: #999;
-            padding: 40px 20px;
-        }
-        
-        .no-habits.hidden { display: none; }
-        
-        .analytics-section {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .analytics-item {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 4px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .analytics-item h4 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .analytics-item .value {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: #667eea;
-        }
-        
-        .search-box {
-            margin-bottom: 15px;
-        }
-        
-        .search-box input {
-            width: 100%;
-        }
-        
-        .alert {
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-        
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-    </style>
+    <title>Habit Tracker — Productivity Analytics</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📊 Habit Dashboard</h1>
-            <p>Track your daily habits and analyze your productivity</p>
-        </div>
-        
-        <div class="api-key-section">
-            <label for="apiKey">API Key (Required)</label>
-            <input 
-                type="password" 
-                id="apiKey" 
-                placeholder="Enter your API key"
-                value="test-api-key-12345"
-            >
-            <div class="api-key-hint">
-                Default API key for development: <code>test-api-key-12345</code>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <h1 class="logo">📊 Habit Tracker</h1>
+                <p class="tagline">Build consistency, track progress</p>
+            </div>
+            <div class="navbar-actions">
+                <button id="apiKeyToggle" class="btn btn-secondary btn-sm">🔐 API Key</button>
             </div>
         </div>
-        
-        <div id="message" class="message"></div>
-        
-        <div class="grid">
-            <!-- Create Habit Card -->
-            <div class="card">
-                <h2>➕ Create Habit</h2>
-                <form id="createHabitForm">
-                    <div class="form-group">
-                        <label for="habitName">Habit Name *</label>
-                        <input type="text" id="habitName" placeholder="e.g., Morning Exercise" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="habitDescription">Description</label>
-                        <textarea id="habitDescription" placeholder="e.g., 30 minutes of cardio"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="habitFrequency">Frequency *</label>
-                        <select id="habitFrequency" required>
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
-                    </div>
-                    <button type="submit">Create Habit</button>
-                </form>
+    </nav>
+
+    <!-- API Key Modal -->
+    <div id="apiKeyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configure API Key</h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
             </div>
-            
-            <!-- Analytics Card -->
-            <div class="card">
-                <h2>📈 Analytics</h2>
+            <div class="modal-body">
                 <div class="form-group">
-                    <label for="habitSelect">Select Habit</label>
-                    <select id="habitSelect">
-                        <option value="">-- Choose a habit --</option>
-                    </select>
+                    <label for="apiKeyInput">API Key (required)</label>
+                    <input 
+                        type="password" 
+                        id="apiKeyInput" 
+                        placeholder="Enter your API key"
+                        class="form-input"
+                    >
+                    <div class="help-text">
+                        Default for development: <code>test-api-key-12345</code>
+                    </div>
                 </div>
-                <div id="analyticsContainer" class="analytics-section"></div>
             </div>
-        </div>
-        
-        <!-- Habits List Card -->
-        <div class="card">
-            <h2>📋 Your Habits</h2>
-            <div class="search-box">
-                <input 
-                    type="text" 
-                    id="searchHabits" 
-                    placeholder="Search habits..."
-                >
-            </div>
-            <div id="habitsList" class="habits-list"></div>
-            <div id="noHabits" class="no-habits hidden">
-                No habits yet. Create one to get started!
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelApiKey">Cancel</button>
+                <button class="btn btn-primary" id="saveApiKey">Save</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar: Create Habit -->
+        <aside class="sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Create Habit</h2>
+                </div>
+                <div class="card-body">
+                    <form id="createHabitForm" class="form">
+                        <div class="form-group">
+                            <label for="habitName">Name <span class="required">*</span></label>
+                            <input 
+                                type="text" 
+                                id="habitName" 
+                                placeholder="e.g., Morning Exercise"
+                                class="form-input"
+                                required
+                            >
+                            <div class="error-message" id="nameError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="habitDescription">Description</label>
+                            <textarea 
+                                id="habitDescription" 
+                                placeholder="Optional details"
+                                class="form-textarea"
+                                rows="3"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="habitFrequency">Frequency <span class="required">*</span></label>
+                            <select id="habitFrequency" class="form-select" required>
+                                <option value="">-- Select --</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <span>➕ Create Habit</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Notifications -->
+            <div id="toastContainer" class="toast-container"></div>
+
+            <!-- Habits List -->
+            <section class="card">
+                <div class="card-header">
+                    <div style="flex: 1;">
+                        <h2>Your Habits</h2>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="searchHabits" 
+                        placeholder="Search..."
+                        class="form-input form-input-sm"
+                        style="max-width: 250px;"
+                    >
+                </div>
+                <div class="card-body">
+                    <div id="habitsList" class="habits-grid"></div>
+                    <div id="noHabits" class="empty-state hidden">
+                        <p class="empty-state-icon">🌱</p>
+                        <h3>No habits yet</h3>
+                        <p>Create your first habit to get started!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Habit Details Panel -->
+            <section id="detailsSection" class="card hidden">
+                <div class="card-header">
+                    <h2 id="detailsTitle">Habit Details</h2>
+                    <button id="closeDetails" class="btn btn-secondary btn-sm">×</button>
+                </div>
+                <div class="card-body">
+                    <div id="streakStats" class="stats-grid"></div>
+                    
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                        <h3>Recent Logs</h3>
+                        <div id="logsContainer" class="logs-list"></div>
+                    </div>
+
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button id="markDoneTodayBtn" class="btn btn-success">✓ Mark Done Today</button>
+                        <button id="deleteHabitBtn" class="btn btn-danger">🗑️ Delete</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weekly Summary -->
+            <section class="card">
+                <div class="card-header">
+                    <h2>Weekly Summary</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group" style="margin-bottom: 1.5rem; max-width: 300px;">
+                        <label for="weekInput">Select Week</label>
+                        <input 
+                            type="text" 
+                            id="weekInput" 
+                            placeholder="e.g., 2026-09 or 2026-W09"
+                            class="form-input"
+                        >
+                        <div class="help-text">Format: YYYY-WW or YYYY-Www (e.g., 2026-09)</div>
+                    </div>
+                    <div id="weeklySummary" class="weekly-table-container"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div id="confirmDialog" class="modal">
+        <div class="modal-content modal-content-sm">
+            <div class="modal-body">
+                <h3 id="confirmTitle">Confirm Action</h3>
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+                <button class="btn btn-danger" id="confirmOk">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

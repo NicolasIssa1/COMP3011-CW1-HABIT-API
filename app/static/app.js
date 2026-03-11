@@ -1,265 +1,679 @@
-// API Configuration
-const API_BASE = window.location.origin; // Use same server
+// ====================================================================
+// HABIT TRACKER - VANILLA JS (WORKING VERSION)
+// ====================================================================
+
+const API_BASE = "/api";
 const DEFAULT_API_KEY = "test-api-key-12345";
+const STORAGE_KEY_API = "habit_api_key";
 
-// DOM Elements
-const apiKeyInput = document.getElementById("apiKey");
-const messageEl = document.getElementById("message");
-const createHabitForm = document.getElementById("createHabitForm");
-const habitsList = document.getElementById("habitsList");
-const noHabits = document.getElementById("noHabits");
-const habitSelect = document.getElementById("habitSelect");
-const analyticsContainer = document.getElementById("analyticsContainer");
-const searchInput = document.getElementById("searchHabits");
+// State Management
+const appState = {
+    habits: [],
+    filteredHabits: [],
+    selectedHabitId: null,
+    isLoading: false,
+};
 
-// State
-let allHabits = [];
-let filteredHabits = [];
+// ====================================================================
+// API KEY MANAGEMENT
+// ====================================================================
 
-// Utility: Get API Key
-function getApiKey() {
-    return apiKeyInput.value || DEFAULT_API_KEY;
+function getStoredApiKey() {
+    return localStorage.getItem(STORAGE_KEY_API) || DEFAULT_API_KEY;
 }
 
-// Utility: Make API Request
+function saveApiKey(key) {
+    localStorage.setItem(STORAGE_KEY_API, key);
+}
+
+// ====================================================================
+// API REQUESTS
+// ====================================================================
+
 async function apiRequest(method, endpoint, body = null) {
     const headers = {
-        "X-API-Key": getApiKey(),
+        "X-API-Key": getStoredApiKey(),
         "Content-Type": "application/json"
     };
-    
-    const options = {
-        method,
-        headers
-    };
-    
+
+    const options = { method, headers };
     if (body) {
         options.body = JSON.stringify(body);
     }
-    
+
     try {
         const response = await fetch(`${API_BASE}${endpoint}`, options);
         const data = await response.json();
-        
+
         if (!response.ok) {
-            throw new Error(data.detail || `Request failed: ${response.status}`);
+            throw new Error(data.detail || `Request failed with status ${response.status}`);
         }
-        
+
         return data;
     } catch (error) {
         throw error;
     }
 }
 
-// Utility: Show Message
-function showMessage(text, type = "info") {
-    messageEl.textContent = text;
-    messageEl.className = `message show ${type}`;
-    setTimeout(() => messageEl.classList.remove("show"), 5000);
-}
+// ====================================================================
+// TOAST NOTIFICATIONS
+// ====================================================================
 
-// Load All Habits
-async function loadHabits() {
-    try {
-        displayLoadingState();
-        allHabits = await apiRequest("GET", "/habits?limit=100");
-        filteredHabits = allHabits;
-        renderHabits();
-        updateHabitSelect();
-    } catch (error) {
-        showMessage(`Failed to load habits: ${error.message}`, "error");
+class ToastManager {
+    constructor() {
+        this.container = document.getElementById("toastContainer");
     }
-}
 
-// Display Loading State
-function displayLoadingState() {
-    habitsList.innerHTML = `<div style="text-align: center; padding: 20px; color: #999;">
-        <div class="loading-spinner" style="margin: 0 auto; vertical-align: middle;"></div> Loading...
-    </div>`;
-}
-
-// Render Habits List
-function renderHabits() {
-    habitsList.innerHTML = "";
-    
-    if (filteredHabits.length === 0) {
-        noHabits.classList.remove("hidden");
-        return;
-    }
-    
-    noHabits.classList.add("hidden");
-    
-    filteredHabits.forEach(habit => {
-        const habitEl = document.createElement("div");
-        habitEl.className = "habit-item";
-        habitEl.innerHTML = `
-            <div class="habit-info">
-                <h3>${escapeHtml(habit.name)}</h3>
-                <div class="habit-meta">
-                    ${habit.description ? `<p>${escapeHtml(habit.description)}</p>` : ""}
-                    <p>Frequency: <strong>${habit.frequency}</strong> | 
-                       Status: <strong>${habit.is_active ? "Active" : "Inactive"}</strong></p>
-                </div>
-            </div>
-            <div class="habit-actions">
-                <button class="btn-success btn-small" onclick="markHabitDone(${habit.id})">
-                    ✓ Mark Done Today
-                </button>
-                <button class="btn-secondary btn-small" onclick="viewHabitStats(${habit.id})">
-                    📊 Stats
-                </button>
-                <button class="btn-danger btn-small" onclick="deleteHabit(${habit.id})">
-                    🗑️ Delete
-                </button>
-            </div>
+    show(message, type = "info", duration = 4000) {
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span>${escapeHtml(message)}</span>
+            <button class="toast-close" aria-label="Close">&times;</button>
         `;
-        habitsList.appendChild(habitEl);
+
+        this.container.appendChild(toast);
+        const closeBtn = toast.querySelector(".toast-close");
+        closeBtn.addEventListener("click", () => this.remove(toast));
+
+        if (duration > 0) {
+            setTimeout(() => this.remove(toast), duration);
+        }
+
+        return toast;
+    }
+
+    success(message, duration = 3000) {
+        this.show(message, "success", duration);
+    }
+
+    error(message, duration = 5000) {
+        this.show(message, "error", duration);
+    }
+
+    info(message, duration = 3000) {
+        this.show(message, "info", duration);
+    }
+
+    warning(message, duration = 4000) {
+        this.show(message, "warning", duration);
+    }
+
+    remove(toast) {
+        toast.classList.add("removing");
+        setTimeout(() => toast.remove(), 300);
+    }
+}
+
+const toast = new ToastManager();
+
+// ====================================================================
+// MODAL MANAGER
+// ====================================================================
+
+class ModalManager {
+    static open(modalElement) {
+        modalElement.classList.add("show");
+    }
+
+    static close(modalElement) {
+        modalElement.classList.remove("show");
+    }
+
+    static isOpen(modalElement) {
+        return modalElement.classList.contains("show");
+    }
+
+    static closeAll() {
+        document.querySelectorAll(".modal.show").forEach(modal => {
+            this.close(modal);
+        });
+    }
+}
+
+// ====================================================================
+// CONFIRM DIALOG
+// ====================================================================
+
+function showConfirmDialog(title, message) {
+    return new Promise((resolve) => {
+        const confirmDialog = document.getElementById("confirmDialog");
+        const confirmTitle = document.getElementById("confirmTitle");
+        const confirmMessage = document.getElementById("confirmMessage");
+        const confirmOk = document.getElementById("confirmOk");
+        const confirmCancel = document.getElementById("confirmCancel");
+
+        confirmTitle.textContent = title;
+        confirmMessage.textContent = message;
+
+        const handleOk = () => {
+            cleanup();
+            resolve(true);
+        };
+
+        const handleCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+
+        const cleanup = () => {
+            confirmOk.removeEventListener("click", handleOk);
+            confirmCancel.removeEventListener("click", handleCancel);
+            ModalManager.close(confirmDialog);
+        };
+
+        confirmOk.addEventListener("click", handleOk);
+        confirmCancel.addEventListener("click", handleCancel);
+
+        ModalManager.open(confirmDialog);
     });
 }
 
-// Create Habit
-createHabitForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    
-    const name = document.getElementById("habitName").value.trim();
-    const description = document.getElementById("habitDescription").value.trim();
-    const frequency = document.getElementById("habitFrequency").value;
-    
-    if (!name) {
-        showMessage("Habit name is required", "error");
+// ====================================================================
+// API KEY MODAL
+// ====================================================================
+
+function initApiKeyModal() {
+    const apiKeyBtn = document.getElementById("apiKeyBtn");
+    const apiKeyModal = document.getElementById("apiKeyModal");
+    const apiKeyInput = document.getElementById("apiKeyInput");
+    const saveApiKeyBtn = document.getElementById("apiKeySaveBtn");
+    const cancelApiKeyBtn = document.getElementById("apiKeyCancelBtn");
+    const modalClose = document.getElementById("apiKeyModalClose");
+
+    apiKeyBtn.addEventListener("click", () => {
+        apiKeyInput.value = getStoredApiKey();
+        ModalManager.open(apiKeyModal);
+    });
+
+    saveApiKeyBtn.addEventListener("click", () => {
+        const newKey = apiKeyInput.value.trim();
+        if (!newKey) {
+            toast.error("API key cannot be empty");
+            return;
+        }
+        saveApiKey(newKey);
+        ModalManager.close(apiKeyModal);
+        toast.success("API key saved!");
+    });
+
+    cancelApiKeyBtn.addEventListener("click", () => {
+        ModalManager.close(apiKeyModal);
+    });
+
+    modalClose.addEventListener("click", () => {
+        ModalManager.close(apiKeyModal);
+    });
+
+    apiKeyInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            saveApiKeyBtn.click();
+        }
+    });
+}
+
+// ====================================================================
+// HABIT MANAGEMENT
+// ====================================================================
+
+async function loadHabits() {
+    try {
+        appState.isLoading = true;
+        appState.habits = await apiRequest("GET", "/habits?limit=100");
+        appState.filteredHabits = appState.habits;
+        renderHabits();
+        updateHabitSelect();
+    } catch (error) {
+        toast.error(`Failed to load habits: ${error.message}`);
+    } finally {
+        appState.isLoading = false;
+    }
+}
+
+function renderHabits() {
+    const habitsList = document.getElementById("habitsList");
+    const noHabits = document.getElementById("noHabits");
+
+    habitsList.innerHTML = "";
+
+    if (appState.filteredHabits.length === 0) {
+        noHabits.classList.remove("hidden");
         return;
     }
-    
-    try {
-        const newHabit = await apiRequest("POST", "/habits", {
-            name,
-            description,
-            frequency
-        });
-        
-        showMessage(`Habit "${newHabit.name}" created! 🎉`, "success");
-        createHabitForm.reset();
-        await loadHabits();
-    } catch (error) {
-        showMessage(`Failed to create habit: ${error.message}`, "error");
-    }
-});
 
-// Mark Habit as Done
-async function markHabitDone(habitId) {
-    const today = new Date().toISOString().split("T")[0];
-    
+    noHabits.classList.add("hidden");
+
+    appState.filteredHabits.forEach((habit) => {
+        const card = createHabitCard(habit);
+        habitsList.appendChild(card);
+    });
+}
+
+function createHabitCard(habit) {
+    const card = document.createElement("div");
+    card.className = "habit-card";
+    card.innerHTML = `
+        <div class="habit-card-header">
+            <h3>${escapeHtml(habit.name)}</h3>
+            <span class="habit-badge">${habit.frequency}</span>
+        </div>
+        ${
+            habit.description
+                ? `<p class="habit-description">${escapeHtml(habit.description)}</p>`
+                : ""
+        }
+        <div class="habit-meta">
+            <span>📊 ID: ${habit.id}</span>
+            <span>${habit.is_active ? "✓ Active" : "✗ Inactive"}</span>
+        </div>
+        <div class="habit-actions">
+            <button class="btn btn-primary btn-sm" data-action="view" data-id="${habit.id}">
+                📋 View
+            </button>
+            <button class="btn btn-success btn-sm" data-action="mark-done" data-id="${habit.id}">
+                ✓ Done Today
+            </button>
+            <button class="btn btn-danger btn-sm" data-action="delete" data-id="${habit.id}">
+                🗑️ Delete
+            </button>
+        </div>
+    `;
+
+    // Event delegation
+    const viewBtn = card.querySelector('[data-action="view"]');
+    const markDoneBtn = card.querySelector('[data-action="mark-done"]');
+    const deleteBtn = card.querySelector('[data-action="delete"]');
+
+    viewBtn.addEventListener("click", () => showHabitDetails(habit.id));
+    markDoneBtn.addEventListener("click", () => markHabitDone(habit.id, markDoneBtn));
+    deleteBtn.addEventListener("click", () => deleteHabit(habit.id));
+
+    return card;
+}
+
+// ====================================================================
+// HABIT DETAILS
+// ====================================================================
+
+async function showHabitDetails(habitId) {
     try {
+        appState.selectedHabitId = habitId;
+        const habit = appState.habits.find((h) => h.id === habitId);
+
+        if (!habit) {
+            toast.error("Habit not found");
+            return;
+        }
+
+        const detailsSection = document.getElementById("detailsSection");
+        const detailsTitle = document.getElementById("detailsTitle");
+        const streakStats = document.getElementById("streakStats");
+
+        detailsTitle.textContent = habit.name;
+
+        // Load streak stats
+        const streak = await apiRequest("GET", `/habits/${habitId}/streak`);
+        streakStats.innerHTML = `
+            <div class="stat-card">
+                <div class="stat-label">Current Streak</div>
+                <div class="stat-value">${streak.current_streak}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Longest Streak</div>
+                <div class="stat-value">${streak.longest_streak}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Completions</div>
+                <div class="stat-value">${streak.total_completions}</div>
+            </div>
+        `;
+
+        // Load logs
+        await loadHabitLogs(habitId);
+
+        // Show details section
+        detailsSection.classList.remove("hidden");
+
+        // Update button handlers
+        document.getElementById("markDoneTodayBtn").onclick = () => markHabitDone(habitId);
+        document.getElementById("deleteHabitBtn").onclick = () => deleteHabit(habitId);
+        document.getElementById("closeDetails").onclick = () => {
+            detailsSection.classList.add("hidden");
+            appState.selectedHabitId = null;
+        };
+    } catch (error) {
+        toast.error(`Failed to load habit details: ${error.message}`);
+    }
+}
+
+async function loadHabitLogs(habitId) {
+    try {
+        const logs = await apiRequest("GET", `/habits/${habitId}/logs?limit=20`);
+        const logsContainer = document.getElementById("logsContainer");
+
+        if (logs.length === 0) {
+            logsContainer.innerHTML = '<div class="no-logs">No logs yet</div>';
+            return;
+        }
+
+        logsContainer.innerHTML = logs
+            .reverse()
+            .map(
+                (log) => `
+            <div class="log-item">
+                <span class="log-item-date">${log.date}</span>
+                <button class="log-item-delete" data-log-id="${log.id}" title="Delete log">
+                    ×
+                </button>
+            </div>
+        `
+            )
+            .join("");
+
+        logsContainer.querySelectorAll(".log-item-delete").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                const logId = parseInt(btn.dataset.logId);
+                deleteHabitLog(habitId, logId);
+            });
+        });
+    } catch (error) {
+        toast.error(`Failed to load logs: ${error.message}`);
+    }
+}
+
+// ====================================================================
+// HABIT ACTIONS
+// ====================================================================
+
+async function markHabitDone(habitId, btnElement = null) {
+    try {
+        const today = new Date().toISOString().split("T")[0];
+
+        if (btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerHTML = '<span class="loading-spinner"></span> Saving...';
+        }
+
         await apiRequest("POST", `/habits/${habitId}/logs`, {
             date: today,
-            notes: ""
+            notes: "",
         });
-        
-        showMessage("Habit marked as done! 🎉", "success");
-        await loadHabits();
+
+        toast.success("✓ Habit marked as done! Keep it up! 🎉");
+
+        if (appState.selectedHabitId === habitId) {
+            await showHabitDetails(habitId);
+        } else {
+            await loadHabits();
+        }
     } catch (error) {
         if (error.message.includes("409")) {
-            showMessage("Already logged for today!", "info");
+            toast.warning("Already logged for today!");
         } else {
-            showMessage(`Failed to mark habit: ${error.message}`, "error");
+            toast.error(`Failed to log habit: ${error.message}`);
+        }
+    } finally {
+        if (btnElement) {
+            btnElement.disabled = false;
+            btnElement.innerHTML = "✓ Done Today";
         }
     }
 }
 
-// Delete Habit
 async function deleteHabit(habitId) {
-    if (!confirm("Are you sure you want to delete this habit?")) return;
-    
+    const habit = appState.habits.find((h) => h.id === habitId);
+    const confirmed = await showConfirmDialog(
+        "Delete Habit?",
+        `Are you sure you want to delete "${habit.name}"? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
     try {
         await apiRequest("DELETE", `/habits/${habitId}`);
-        showMessage("Habit deleted", "success");
+        toast.success("Habit deleted");
+
+        document.getElementById("detailsSection").classList.add("hidden");
+        appState.selectedHabitId = null;
+
         await loadHabits();
     } catch (error) {
-        showMessage(`Failed to delete habit: ${error.message}`, "error");
+        toast.error(`Failed to delete habit: ${error.message}`);
     }
 }
 
-// View Habit Stats (Streak)
-async function viewHabitStats(habitId) {
-    try {
-        const habit = allHabits.find(h => h.id === habitId);
-        habitSelect.value = habitId;
-        await loadAnalytics();
-    } catch (error) {
-        showMessage(`Failed to load stats: ${error.message}`, "error");
-    }
-}
-
-// Load Analytics for Selected Habit
-async function loadAnalytics() {
-    const habitId = habitSelect.value;
-    analyticsContainer.innerHTML = "";
-    
-    if (!habitId) return;
-    
-    try {
-        const streak = await apiRequest("GET", `/habits/${habitId}/streak`);
-        
-        const html = `
-            <div class="analytics-item">
-                <h4>Current Streak</h4>
-                <div class="value">${streak.current_streak} days</div>
-            </div>
-            <div class="analytics-item">
-                <h4>Longest Streak</h4>
-                <div class="value">${streak.longest_streak} days</div>
-            </div>
-            <div class="analytics-item">
-                <h4>Total Completions</h4>
-                <div class="value">${streak.total_completions}</div>
-            </div>
-        `;
-        
-        analyticsContainer.innerHTML = html;
-    } catch (error) {
-        analyticsContainer.innerHTML = `<div class="alert alert-warning">Failed to load analytics: ${error.message}</div>`;
-    }
-}
-
-// Update Habit Select Dropdown
-function updateHabitSelect() {
-    const currentValue = habitSelect.value;
-    habitSelect.innerHTML = '<option value="">-- Choose a habit --</option>';
-    
-    allHabits.forEach(habit => {
-        const option = document.createElement("option");
-        option.value = habit.id;
-        option.textContent = habit.name;
-        habitSelect.appendChild(option);
-    });
-    
-    habitSelect.value = currentValue;
-}
-
-// Search Habits
-searchInput.addEventListener("input", (e) => {
-    const query = e.target.value.toLowerCase();
-    filteredHabits = allHabits.filter(habit =>
-        habit.name.toLowerCase().includes(query) ||
-        habit.description.toLowerCase().includes(query)
+async function deleteHabitLog(habitId, logId) {
+    const confirmed = await showConfirmDialog(
+        "Delete Log?",
+        "Remove this completion record?"
     );
-    renderHabits();
-});
 
-// Analytics Change Handler
-habitSelect.addEventListener("change", loadAnalytics);
+    if (!confirmed) return;
 
-// Utility: Escape HTML
+    try {
+        await apiRequest("DELETE", `/habits/${habitId}/logs/${logId}`);
+        toast.success("Log deleted");
+        await loadHabitLogs(habitId);
+    } catch (error) {
+        toast.error(`Failed to delete log: ${error.message}`);
+    }
+}
+
+// ====================================================================
+// CREATE HABIT
+// ====================================================================
+
+function initCreateHabitForm() {
+    const form = document.getElementById("createHabitForm");
+    const nameInput = document.getElementById("habitName");
+    const descInput = document.getElementById("habitDescription");
+    const freqSelect = document.getElementById("habitFrequency");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = nameInput.value.trim();
+        const description = descInput.value.trim();
+        const frequency = freqSelect.value;
+
+        if (!name || !frequency) {
+            toast.error("Please fill in required fields");
+            return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        try {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML =
+                '<span class="loading-spinner"></span> Creating...';
+
+            await apiRequest("POST", "/habits", {
+                name,
+                description,
+                frequency,
+            });
+
+            toast.success(`✨ "${name}" created!`);
+            form.reset();
+            freqSelect.value = "";
+            await loadHabits();
+        } catch (error) {
+            toast.error(`Failed to create habit: ${error.message}`);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "➕ Create Habit";
+        }
+    });
+}
+
+// ====================================================================
+// SEARCH
+// ====================================================================
+
+function initSearch() {
+    const searchInput = document.getElementById("searchHabits");
+
+    searchInput.addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase();
+
+        appState.filteredHabits = appState.habits.filter((habit) =>
+            habit.name.toLowerCase().includes(query) ||
+            (habit.description && habit.description.toLowerCase().includes(query))
+        );
+
+        renderHabits();
+    });
+}
+
+// ====================================================================
+// HABIT SELECT DROPDOWN (OPTIONAL)
+// ====================================================================
+
+function updateHabitSelect() {
+    // This function is a no-op for the modern UI
+    // The old code referenced a habitSelect dropdown that's no longer used
+    // Keeping it here for backwards compatibility
+}
+
+// ====================================================================
+// WEEKLY SUMMARY
+// ====================================================================
+
+function initWeeklySummary() {
+    const weekInput = document.getElementById("weekInput");
+    const weeklySummary = document.getElementById("weeklySummary");
+
+    // Load current week
+    const today = new Date();
+    const weekNum = getISOWeekNumber(today);
+    const year = today.getFullYear();
+    const defaultWeek = `${year}-${String(weekNum).padStart(2, "0")}`;
+    weekInput.value = defaultWeek;
+
+    // Load on input change
+    weekInput.addEventListener("change", () => {
+        loadWeeklySummary();
+    });
+
+    weekInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            loadWeeklySummary();
+        }
+    });
+
+    // Initial load
+    loadWeeklySummary();
+}
+
+async function loadWeeklySummary() {
+    const weekInput = document.getElementById("weekInput");
+    const weeklySummary = document.getElementById("weeklySummary");
+    const week = weekInput.value.trim();
+
+    if (!week) {
+        weeklySummary.innerHTML =
+            '<div class="weekly-empty">Enter a week to view summary</div>';
+        return;
+    }
+
+    try {
+        const summary = await apiRequest(
+            "GET",
+            `/analytics/weekly-summary?week=${encodeURIComponent(week)}`
+        );
+
+        if (summary.items.length === 0) {
+            weeklySummary.innerHTML =
+                '<div class="weekly-empty">No habits for this week</div>';
+            return;
+        }
+
+        const html = `
+            <table class="weekly-table">
+                <thead>
+                    <tr>
+                        <th>Habit</th>
+                        <th>Completions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${summary.items
+                        .map(
+                            (item) => `
+                        <tr>
+                            <td>${escapeHtml(item.habit_name)}</td>
+                            <td class="weekly-completion">${item.completions}</td>
+                        </tr>
+                    `
+                        )
+                        .join("")}
+                    <tr style="font-weight: 600; background: var(--bg-secondary);">
+                        <td>Total Completions</td>
+                        <td class="weekly-completion">${summary.total_completions}</td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
+
+        weeklySummary.innerHTML = html;
+    } catch (error) {
+        weeklySummary.innerHTML = `<div class="weekly-empty" style="color: var(--danger);">Error: ${escapeHtml(error.message)}</div>`;
+    }
+}
+
+function getISOWeekNumber(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+// ====================================================================
+// UTILITIES
+// ====================================================================
+
 function escapeHtml(text) {
+    if (!text) return "";
     const map = {
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
         '"': "&quot;",
-        "'": "&#039;"
+        "'": "&#039;",
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
-// Initialize
+// ====================================================================
+// INITIALIZATION
+// ====================================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Initialize all components
+    initApiKeyModal();
+    initCreateHabitForm();
+    initSearch();
+    initWeeklySummary();
+
+    // Load initial data
+    loadHabits();
+
+    // Close modals on Escape key
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            ModalManager.closeAll();
+        }
+    });
+
+    // Close modals on background click
+    document.querySelectorAll(".modal").forEach((modal) => {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                ModalManager.close(modal);
+            }
+        });
+    });
+});
 loadHabits();
