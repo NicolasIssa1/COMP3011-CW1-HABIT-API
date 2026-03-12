@@ -7,7 +7,7 @@
 ## 1. ChatGPT Conversation Examples
 
 ### Conversation 1: FastAPI Project Structure
-**Date:** [Feb 2026]  
+**Date:** [13 March 2026]  
 **Tool:** ChatGPT (GPT-4)  
 **Purpose:** Architecture guidance
 
