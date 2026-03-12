@@ -43,10 +43,25 @@ async function apiRequest(method, endpoint, body = null) {
 
     try {
         const response = await fetch(`${API_BASE}${endpoint}`, options);
-        const data = await response.json();
+        
+        // Handle responses with no body (204 No Content, 304 Not Modified)
+        let data = {};
+        if (response.status !== 204 && response.status !== 304) {
+            try {
+                data = await response.json();
+            } catch (e) {
+                // If JSON parsing fails, continue with empty object
+                console.warn("Failed to parse response JSON:", e);
+                data = {};
+            }
+        }
 
+        // Check response status and throw error if not ok
         if (!response.ok) {
-            throw new Error(data.detail || `Request failed with status ${response.status}`);
+            const errorMessage = data.detail || `Request failed with status ${response.status}`;
+            const err = new Error(errorMessage);
+            err.status = response.status;
+            throw err;
         }
 
         return data;
@@ -174,12 +189,19 @@ function showConfirmDialog(title, message) {
 // ====================================================================
 
 function initApiKeyModal() {
-    const apiKeyBtn = document.getElementById("apiKeyBtn");
+    // Use correct IDs from the actual HTML
+    const apiKeyBtn = document.getElementById("apiKeyToggle");
     const apiKeyModal = document.getElementById("apiKeyModal");
     const apiKeyInput = document.getElementById("apiKeyInput");
-    const saveApiKeyBtn = document.getElementById("apiKeySaveBtn");
-    const cancelApiKeyBtn = document.getElementById("apiKeyCancelBtn");
-    const modalClose = document.getElementById("apiKeyModalClose");
+    const saveApiKeyBtn = document.getElementById("saveApiKey");
+    const cancelApiKeyBtn = document.getElementById("cancelApiKey");
+    const modalClose = document.querySelector("#apiKeyModal .modal-close");
+
+    // Check if all required elements exist
+    if (!apiKeyBtn || !apiKeyModal || !apiKeyInput || !saveApiKeyBtn || !cancelApiKeyBtn) {
+        console.warn("API key modal elements not found; skipping API key modal init.");
+        return;
+    }
 
     apiKeyBtn.addEventListener("click", () => {
         apiKeyInput.value = getStoredApiKey();
@@ -201,10 +223,14 @@ function initApiKeyModal() {
         ModalManager.close(apiKeyModal);
     });
 
-    modalClose.addEventListener("click", () => {
-        ModalManager.close(apiKeyModal);
-    });
+    // Close modal when clicking the close button (if it exists)
+    if (modalClose) {
+        modalClose.addEventListener("click", () => {
+            ModalManager.close(apiKeyModal);
+        });
+    }
 
+    // Close modal on Enter key in input
     apiKeyInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
             saveApiKeyBtn.click();
@@ -407,7 +433,7 @@ async function markHabitDone(habitId, btnElement = null) {
             await loadHabits();
         }
     } catch (error) {
-        if (error.message.includes("409")) {
+        if (error.status === 409 || error.message.includes("already exists")) {
             toast.warning("Already logged for today!");
         } else {
             toast.error(`Failed to log habit: ${error.message}`);
@@ -676,4 +702,3 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
-loadHabits();

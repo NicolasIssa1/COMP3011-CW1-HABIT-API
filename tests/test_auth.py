@@ -14,7 +14,7 @@ def unauthenticated_client():
 
 def test_request_without_api_key_returns_401(unauthenticated_client):
     """Requests without X-API-Key header should return 401."""
-    response = unauthenticated_client.get("/habits")
+    response = unauthenticated_client.get("/api/habits")
     assert response.status_code == 401
     detail = response.json()["detail"].lower()
     assert "api key" in detail or "missing" in detail
@@ -23,7 +23,7 @@ def test_request_without_api_key_returns_401(unauthenticated_client):
 def test_request_with_invalid_api_key_returns_403(unauthenticated_client):
     """Requests with invalid API key should return 403."""
     response = unauthenticated_client.get(
-        "/habits",
+        "/api/habits",
         headers={"X-API-Key": "invalid-key"}
     )
     assert response.status_code == 403
@@ -33,7 +33,7 @@ def test_request_with_invalid_api_key_returns_403(unauthenticated_client):
 def test_request_with_valid_api_key_succeeds(unauthenticated_client):
     """Requests with valid API key should succeed."""
     response = unauthenticated_client.get(
-        "/habits",
+        "/api/habits",
         headers={"X-API-Key": "test-api-key-12345"}
     )
     assert response.status_code == 200

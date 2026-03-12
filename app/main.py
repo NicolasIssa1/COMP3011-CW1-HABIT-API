@@ -93,9 +93,9 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # Register routers
-app.include_router(habits_router)
-app.include_router(logs_router)
-app.include_router(analytics_router)
+app.include_router(habits_router, prefix="/api")
+app.include_router(logs_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
 
 
 # Serve static files (front-end)
