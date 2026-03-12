@@ -192,7 +192,7 @@ class AuthenticatedTestClient(TestClient):
 
 **All existing tests still pass** via `AuthenticatedTestClient` in conftest.py:
 
-Test Count: 10 existing + 3 new = **13 tests total**
+Test Count: **14 tests total**
 
 ```bash
 # Run tests
@@ -328,7 +328,7 @@ http://localhost:8000/ui/
 - Success feedback
 
 ✅ **Testing:**
-- 13 tests (100% pass)
+- 14 tests (all passing)
 - Auth test coverage
 - Integration tests
 
@@ -433,7 +433,7 @@ This implementation summary and all code were generated using GitHub Copilot and
 - 2 new front-end files (HTML, JS)
 - 2 new doc files (guides)
 - 8 files modified (routers, config, main, README, tests)
-- 13 tests passing (up from 10)
+- 14 tests passing
 - ~1,000 lines of new code/docs
 
 **Risk Level:** 🟢 **LOW**
