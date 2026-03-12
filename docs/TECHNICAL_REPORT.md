@@ -1,322 +1,162 @@
 # Technical Report: Habit & Productivity Analytics API
 
-**Project:** COMP3011 Coursework 1  
-**Author:** Nicolas Issa  
-**Date:** March 10, 2026  
-**Version:** 1.0.0  
+**Module:** COMP3011 — Web Services & Web Data (Coursework 1)
+**Author:** Nicolas Issa
+**Date:** March 2026
+**Repository:** [github.com/NicolasIssa1/COMP3011-CW1-HABIT-API](https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API)
+**Deployed URL:** [comp3011-cw1-habit-api.onrender.com](https://comp3011-cw1-habit-api.onrender.com)
 
 ---
 
-## Executive Summary
+## 1. Overview
 
-The **Habit & Productivity Analytics API** is a RESTful web service designed to track daily habits, log completions, and provide analytics insights. Built with **FastAPI** and **SQLAlchemy**, the API delivers a robust, scalable solution for habit tracking with real-time streak calculations and weekly analytics.
+The Habit & Productivity Analytics API is a RESTful web service for tracking habits, logging completions, and computing productivity analytics (streaks and weekly summaries). It is built with FastAPI (Python 3.12), uses SQLAlchemy as the ORM with SQLite for local development, and is deployed on Render.
 
-**Key Achievements:**
-- ✅ 10/10 unit tests passing
-- ✅ Full CRUD operations for habits and logs
-- ✅ Advanced analytics with streak tracking
-- ✅ Pagination, filtering, and error handling
-- ✅ CORS-enabled for cross-origin requests
-- ✅ Comprehensive request logging
+The project also includes a lightweight vanilla-JS web dashboard served at `/ui/`, API key authentication on all data endpoints, and automated tests via pytest.
 
 ---
 
-## 1. System Architecture
+## 2. Technology Stack & Justification
 
-### 1.1 High-Level Architecture
-
-The API follows a layered architecture pattern:
-
-- **API Layer**: FastAPI with Pydantic validation
-- **Router Layer**: Modular endpoint handlers
-- **Service Layer**: Business logic (streak calculation)
-- **Data Access Layer**: SQLAlchemy ORM
-- **Database Layer**: SQLite/PostgreSQL
-
-### 1.2 Technology Stack
-
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| **Framework** | FastAPI | 0.129.1 |
-| **ORM** | SQLAlchemy | 2.0.46 |
-| **Validation** | Pydantic | 2.12.5 |
-| **Database** | SQLite/PostgreSQL | - |
-| **Testing** | Pytest | 9.0.2 |
+| Component | Choice | Why |
+|-----------|--------|-----|
+| Framework | FastAPI | Auto-generates OpenAPI/Swagger docs at `/docs`; built-in Pydantic request validation; minimal boilerplate |
+| ORM | SQLAlchemy | Database-agnostic models; parameterised queries prevent SQL injection; pairs with Alembic for migrations |
+| Migrations | Alembic | Version-controlled schema changes; one migration file creates both tables |
+| Database | SQLite | Zero-config for development; `DATABASE_URL` env var allows switching to PostgreSQL in production |
+| Auth | X-API-Key header | Simple to implement and test; suitable for a single-service API without user accounts |
+| Frontend | Vanilla HTML/CSS/JS | No build step; served as static files via FastAPI's `StaticFiles` mount at `/ui/` |
+| Testing | pytest + FastAPI TestClient | In-process testing; no external server required |
 
 ---
 
-## 2. Technology Stack Justification
+## 3. Architecture
 
-### 2.1 FastAPI
-
-**Why FastAPI?**
-- Automatic OpenAPI/Swagger documentation
-- Built-in request validation with Pydantic
-- Async/await support for high concurrency
-- 2-3x faster than Flask (benchmark verified)
-- Minimal boilerplate code
-
-### 2.2 SQLAlchemy ORM
-
-**Why SQLAlchemy?**
-- Database abstraction layer
-- Write Python code, not SQL strings
-- Type-safe database operations
-- Built-in relationship management
-- Easy migration with Alembic
-
-### 2.3 Pydantic v2
-
-**Why Pydantic?**
-- Automatic type validation
-- Clear error messages
-- Auto-generates JSON Schema
-- Custom validators support
-
----
-
-## 3. Database Schema
-
-### 3.1 Tables
-
-**Habits Table**
-- `id` (PK): Primary Key
-- `name` (VARCHAR 120): Habit name
-- `description` (VARCHAR 500): Habit description
-- `frequency` (VARCHAR 20): daily, weekly, monthly
-- `is_active` (BOOLEAN): Soft delete flag
-- `created_at` (DATETIME): Creation timestamp
-
-**Habit_Logs Table**
-- `id` (PK): Primary Key
-- `habit_id` (FK): Foreign Key to Habits
-- `date` (DATE): Completion date
-- `notes` (VARCHAR 500): Optional notes
-- **Unique Constraint**: (habit_id, date) prevents duplicates
-
-### 3.2 Design Decisions
-
-- **Cascade Delete**: Deleting habit removes all logs
-- **Unique Constraint**: One log per habit per day
-- **Soft Delete**: `is_active` flag preserves history
-- **Frequency Field**: Supports multiple tracking types
-
----
-
-## 4. API Endpoints
-
-### 4.1 Habits Endpoints
-
-| Method | Endpoint | Status | Description |
-|--------|----------|--------|-------------|
-| POST | `/habits` | 201 | Create habit |
-| GET | `/habits` | 200 | List habits (paginated) |
-| GET | `/habits/{id}` | 200/404 | Get habit details |
-| PATCH | `/habits/{id}` | 200/404 | Update habit |
-| DELETE | `/habits/{id}` | 204/404 | Delete habit |
-
-### 4.2 Logs Endpoints
-
-| Method | Endpoint | Status | Description |
-|--------|----------|--------|-------------|
-| POST | `/habits/{id}/logs` | 201/409 | Log completion |
-| GET | `/habits/{id}/logs` | 200/404 | List logs |
-| DELETE | `/habits/{id}/logs/{log_id}` | 204/404 | Delete log |
-
-### 4.3 Analytics Endpoints
-
-| Method | Endpoint | Status | Description |
-|--------|----------|--------|-------------|
-| GET | `/habits/{id}/streak` | 200/404 | Get streak stats |
-| GET | `/analytics/weekly-summary` | 200/400 | Weekly summary |
-
----
-
-## 5. Security Implementation
-
-### 5.1 Input Validation
-
-- Pydantic type validation on all inputs
-- Length constraints (name: 120 chars, description: 500 chars)
-- Date validation (ISO 8601 format)
-
-### 5.2 SQL Injection Prevention
-
-- SQLAlchemy parameterized queries
-- No raw SQL execution
-- ORM abstraction protects against injection
-
-### 5.3 CORS Configuration
-
-```python
-CORSMiddleware(
-    allow_origins=["*"],  # Restrict in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+```
+Client (browser / curl / Swagger UI)
+  │
+  ├─ /api/habits, /api/habits/{id}/logs, /api/analytics/...
+  │     ↓
+  │   FastAPI routers (habits.py, logs.py, analytics.py)
+  │     ↓  Depends(verify_api_key)  ← X-API-Key header check
+  │   Service layer (streak_service.py)
+  │     ↓
+  │   SQLAlchemy ORM  →  SQLite (dev.db)
+  │
+  ├─ /docs           → Swagger UI (auto-generated)
+  ├─ /ui/            → Static dashboard (index.html, app.js, styles.css)
+  └─ /health         → Public health-check endpoint
 ```
 
-### 5.4 Error Handling
-
-- Global exception handler
-- Safe error messages (no stack traces to clients)
-- All errors logged for debugging
-
-### 5.5 Future Enhancements
-
-- [ ] JWT Authentication
-- [ ] Rate Limiting
-- [ ] HTTPS/TLS
-- [ ] API Key authentication
+Three routers are registered under the `/api` prefix. A `verify_api_key` dependency (in `app/core/security.py`) protects every data endpoint: missing key → 401; wrong key → 403. The `/health` and `/` root endpoints are public. CORS middleware is enabled to allow cross-origin requests from the `/ui/` dashboard. A global exception handler catches unhandled errors and returns a JSON 500 response without exposing stack traces.
 
 ---
 
-## 6. Testing Strategy
+## 4. Data Model
 
-### 6.1 Test Coverage
+**Habit** — `habits` table: `id` (PK), `name` (VARCHAR 120), `description` (VARCHAR 500, nullable), `frequency` (VARCHAR 20, default "daily"), `is_active` (BOOLEAN, default true), `created_at` (DATETIME).
 
-**Results: 10/10 PASSED** ✅
+**HabitLog** — `habit_logs` table: `id` (PK), `habit_id` (FK → habits, CASCADE delete), `date` (DATE), `notes` (VARCHAR 500, nullable). A **unique constraint** on `(habit_id, date)` enforces at most one log per habit per day; violations return **409 Conflict**.
 
-| Test Category | Count | Examples |
-|---------------|-------|----------|
-| **CRUD Tests** | 3 | Create, read, update, delete |
-| **Validation Tests** | 3 | Invalid inputs, duplicates |
-| **Analytics Tests** | 2 | Streak, weekly summary |
-| **Error Tests** | 2 | 404, 400, 409 responses |
+Design rationale:
 
-### 6.2 Running Tests
+- **Done-only logging:** A log exists only when a habit is completed. Missing dates implicitly mean "not done", which keeps storage lean and simplifies streak computation.
+- **DB-level uniqueness:** Duplicate prevention is enforced by the database constraint, not application code, ensuring integrity regardless of client.
+- **Cascade delete:** Removing a habit automatically removes its logs via `ondelete="CASCADE"` on the foreign key.
 
-```bash
-# All tests
-python -m pytest -v
+---
 
-# Specific file
-python -m pytest tests/test_habits.py -v
+## 5. API Endpoints & Status Codes
 
-# With coverage
-python -m pytest --cov=app tests/
-```
+All `/api/` endpoints require the `X-API-Key` header.
+
+| Method | Endpoint | Success | Error codes |
+|--------|----------|---------|-------------|
+| POST | `/api/habits` | 201 | 401, 403 |
+| GET | `/api/habits` | 200 | 401, 403 |
+| GET | `/api/habits/{id}` | 200 | 404, 401, 403 |
+| PATCH | `/api/habits/{id}` | 200 | 404, 401, 403 |
+| DELETE | `/api/habits/{id}` | 204 | 404, 401, 403 |
+| POST | `/api/habits/{id}/logs` | 201 | 409, 404, 401, 403 |
+| GET | `/api/habits/{id}/logs` | 200 | 404, 401, 403 |
+| DELETE | `/api/habits/{id}/logs/{log_id}` | 204 | 404, 401, 403 |
+| GET | `/api/habits/{id}/streak` | 200 | 404, 401, 403 |
+| GET | `/api/analytics/weekly-summary?week=` | 200 | 400, 422, 401, 403 |
+| GET | `/health` | 200 | — |
+| GET | `/` | 200 | — |
+
+Notable behaviours:
+
+- **List endpoints** support `skip` and `limit` query parameters for pagination (default 20, max 100). `GET /api/habits` also accepts `is_active` and `frequency` filters.
+- **Weekly summary** accepts `week` in `YYYY-WW` or `YYYY-Www` format (e.g. `2026-09` or `2026-W09`), validated by regex. Invalid format → 400; invalid ISO week number → 400; missing param → 422.
+- **Streak endpoint** returns `current_streak`, `longest_streak`, and `total_completions`. The algorithm iterates backwards from today counting consecutive dates present in the log set.
+
+---
+
+## 6. Testing
+
+The test suite uses pytest with FastAPI's `TestClient`. A custom `AuthenticatedTestClient` in `conftest.py` automatically injects the `X-API-Key` header into every request.
+
+**14 tests across 3 files — all passing:**
+
+| File | Tests | What is covered |
+|------|-------|-----------------|
+| `test_auth.py` | 4 | 401 (no key), 403 (bad key), 200 (valid key), health endpoint |
+| `test_habits.py` | 3 | Create + list, PATCH missing → 404, delete lifecycle → 404 |
+| `test_logs_and_analytics.py` | 7 | Duplicate log → 409, streak + weekly summary, invalid week format → 400, invalid week number → 400, delete missing log → 404, log for missing habit → 404, missing week param → 422 |
+
+Tests are run with `python -m pytest -v` and verify every documented HTTP status code the API can return.
 
 ---
 
 ## 7. Deployment
 
-### 7.1 Development
+The API is deployed on **Render** (free tier) with auto-deploy from the `main` branch. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
 
-```bash
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
-```
+**Deployment incident:** After initial deploy, `GET /api/habits` returned 500 with `"no such table: habits"`. The SQLite database file was empty because Alembic migrations do not run automatically on Render.
 
-### 7.2 Production
+**Fix:** Added `Base.metadata.create_all(bind=engine)` inside the FastAPI `lifespan` context manager in `app/main.py`. This is idempotent — it only creates tables that do not already exist. Commits `871826a` through `02406d5` document the debugging and resolution.
 
-```bash
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
-```
-
-**Environment Variables:**
-- `DATABASE_URL`: Database connection string
-- `ENVIRONMENT`: development or production
-- `LOG_LEVEL`: INFO, DEBUG, ERROR
+Environment variables used: `DATABASE_URL` (connection string), `ENVIRONMENT` (development/production), `API_KEY` (authentication key).
 
 ---
 
-## 8. Performance
+## 8. Limitations & Future Work
 
-### 8.1 Response Times
-
-| Operation | Time | Notes |
-|-----------|------|-------|
-| Create Habit | 15ms | Single write |
-| List Habits (20) | 8ms | Query + serialization |
-| Get Habit | 5ms | Single read |
-| Log Completion | 12ms | Write + constraint check |
-| Streak Calculation | 20ms | Date iteration |
-| Weekly Summary | 25ms | Aggregation |
-
-### 8.2 Scalability
-
-- Pagination on list endpoints
-- Database indexing on foreign keys
-- Connection pooling in SQLAlchemy
-- Async request handling in FastAPI
+- **Single API key:** All clients share one key. A future version could add per-user JWT authentication.
+- **SQLite in production:** Render's ephemeral filesystem means data does not persist across deploys. Switching to a managed PostgreSQL instance would solve this.
+- **No coverage report:** Tests pass but formal coverage metrics have not been generated.
+- **Frontend is supplementary:** The `/ui/` dashboard demonstrates the API but is not a full-featured application.
+- **Future enhancements:** User accounts, habit categories/tags, data visualisation charts, rate limiting.
 
 ---
 
-## 9. Features
+## 9. GenAI Usage
 
-### 9.1 Habit Tracking
-✅ Create, read, update, delete habits
-✅ Support for daily, weekly, monthly frequencies
-✅ Soft-delete with `is_active` flag
-✅ Timestamp tracking
+Generative AI tools were used during development in accordance with COMP3011's GREEN GenAI policy:
 
-### 9.2 Completion Logging
-✅ Log completions with dates
-✅ Add optional notes
-✅ Prevent duplicate entries
-✅ Date-range filtering
+- **GitHub Copilot:** Code suggestions for CRUD endpoint boilerplate and SQLAlchemy model definitions (~60% acceptance rate; the rest were modified or rejected).
+- **ChatGPT (GPT-4):** Architecture guidance, streak algorithm pseudocode, and debugging consultation.
 
-### 9.3 Analytics
-✅ Current streak calculation
-✅ Longest streak tracking
-✅ Total completions count
-✅ Weekly aggregated summary
+Estimated AI contribution: ~30% of development time, primarily on boilerplate and planning. All AI-generated code was reviewed, tested, and modified.
 
-### 9.4 API Quality
-✅ Pagination support
-✅ Filtering capabilities
-✅ Comprehensive error messages
-✅ Auto-generated Swagger UI
+**Evidence files:**
+
+- Declaration: `docs/GENAI_DECLARATION.md` and `docs/GENAI_DECLARATION.pdf`
+- Conversation logs: `docs/GENAI_CONVERSATION_LOGS.md` (3 ChatGPT + 3 Copilot examples)
 
 ---
 
-## 10. Future Improvements
+## 10. Deliverables Summary
 
-| Feature | Priority | Version |
-|---------|----------|---------|
-| JWT Authentication | High | v1.1 |
-| Rate Limiting | High | v1.1 |
-| User Accounts | Medium | v1.2 |
-| Advanced Analytics | Medium | v1.2 |
-| Redis Caching | Low | v1.3 |
-| Mobile App | Low | v2.0 |
-
----
-
-## 11. Conclusion
-
-The **Habit & Productivity Analytics API** is a complete, production-ready solution for habit tracking. With comprehensive testing, clear architecture, and excellent documentation, it provides a solid foundation for future enhancements.
-
-**Status**: ✅ **COMPLETE & TESTED**
-
----
-
-## Appendices
-
-### A. Repository Structure
-
-```
-COMP3011-CW1-HABIT-API/
-├── app/
-│   ├── core/config.py
-│   ├── db/session.py
-│   ├── models/
-│   ├── routers/
-│   ├── schemas/
-│   ├── services/
-│   └── main.py
-├── tests/
-├── requirements.txt
-└── README.md
-```
-
-### B. Key Dependencies
-
-- FastAPI 0.129.1
-- SQLAlchemy 2.0.46
-- Pydantic 2.12.5
-- Pytest 9.0.2
-- Uvicorn 0.41.0
+| Deliverable | Location |
+|-------------|----------|
+| Source code | `app/`, `tests/`, `migrations/` |
+| API documentation (Swagger export) | `docs/api_documentation.pdf` |
+| Technical report | `docs/TECHNICAL_REPORT.pdf` |
+| Presentation slides | `docs/PRESENTATION.pptx` |
+| GenAI declaration | `docs/GENAI_DECLARATION.pdf` |
+| GenAI conversation logs | `docs/GENAI_CONVERSATION_LOGS.md` |
+| OpenAPI specification | `docs/openapi.json` |
+| Live deployment | [comp3011-cw1-habit-api.onrender.com](https://comp3011-cw1-habit-api.onrender.com) |
 
