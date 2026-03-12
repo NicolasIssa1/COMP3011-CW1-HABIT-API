@@ -37,7 +37,7 @@ This document discloses all usage of Generative AI tools (ChatGPT, GitHub Copilo
 |-----------|--------|-------|
 | CRUD Endpoints | Copilot template + modifications | 70% AI, 30% custom logic |
 | Streak Algorithm | ChatGPT pseudocode + implementation | 20% AI pseudocode, 80% custom |
-| Test Suite | Manual (10 tests) | 100% original |
+| Test Suite | Manual (14 tests) | 100% original |
 | Error Handling | Custom middleware | 100% original |
 | Database Schema | Custom design | 100% original |
 | API Design | Consultation only | 100% original decisions |

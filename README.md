@@ -312,7 +312,7 @@ All materials in `/docs/` ✅
 - ✅ GenAI Declaration (`GENAI_DECLARATION.pdf`)
 
 ### Presentation
-- ✅ Slides (`PRESENTATION.pptx`, 13 slides)
+- ✅ Slides (`PRESENTATION.pptx`, 10 slides)
 - 5 min presentation + 5 min Q&A
 
 ## GenAI Usage (GREEN Assessment)
@@ -342,7 +342,7 @@ All materials in `/docs/` ✅
 ✅ Responsive design (desktop, tablet, mobile)  
 ✅ Real-time search & filtering  
 ✅ Vanilla JS (no frameworks, no build step)  
-✅ **13 tests** with 100% pass rate  
+✅ **14 tests** — all passing  
 
 ## Documentation
 

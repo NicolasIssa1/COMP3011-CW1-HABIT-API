@@ -7,7 +7,7 @@
 ## 1. ChatGPT Conversation Examples
 
 ### Conversation 1: FastAPI Project Structure
-**Date:** [13 March 2026]  
+**Date:** February 2026  
 **Tool:** ChatGPT (GPT-4)  
 **Purpose:** Architecture guidance
 
@@ -34,7 +34,7 @@ User Result: Adopted this structure exactly. See app/ folder in repo.
 ```
 
 ### Conversation 2: Streak Calculation Algorithm
-**Date:** [Feb 2026]  
+**Date:** February 2026  
 **Tool:** ChatGPT (GPT-4)  
 **Purpose:** Algorithm pseudocode
 
@@ -52,7 +52,7 @@ User Result: Implemented in app/services/streak_service.py with custom logic
 ```
 
 ### Conversation 3: Database Design Decision
-**Date:** [Feb 2026]  
+**Date:** February 2026  
 **Tool:** ChatGPT (GPT-4)  
 **Purpose:** Design consultation
 
@@ -86,7 +86,6 @@ def create_habit(habit: HabitCreate, db: Session = Depends(get_db)):
 ```
 
 **My Modifications:**
-- Added validation for duplicate names
 - Added error handling for database failures
 - Added pagination support to list endpoints
 - Implemented proper error responses
@@ -95,18 +94,18 @@ def create_habit(habit: HabitCreate, db: Session = Depends(get_db)):
 **File:** `app/models/habit.py`  
 **What Copilot Suggested:** Basic ORM model structure  
 **My Enhancements:**
-- Added relationship to HabitLog with cascade delete
 - Added is_active soft delete flag
 - Added created_at timestamp
 - Added frequency field with validation
+- Added foreign key cascade on HabitLog
 
 ### Example 3: Test Structure
 **File:** `tests/test_habits.py`  
 **What Copilot Suggested:** Test template  
 **My Implementation:**
 - Wrote all test logic and assertions
-- Created 10 unique test cases
-- Ensured 100% pass rate
+- Created 14 test cases across 3 files
+- All tests passing
 - Added edge case testing
 
 ---

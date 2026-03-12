@@ -31,7 +31,7 @@ async def verify_api_key(api_key_header: str | None = Header(None, alias="X-API-
 
 ### 2. Front-End Assets
 
-#### `app/static/index.html` (370 lines)
+#### `app/static/index.html` (~190 lines)
 - Single-page dashboard app
 - Sections:
   - API key configuration input
@@ -41,7 +41,7 @@ async def verify_api_key(api_key_header: str | None = Header(None, alias="X-API-
 - Responsive design (desktop/tablet/mobile)
 - Built-in messages/notifications
 
-#### `app/static/app.js` (280 lines)
+#### `app/static/app.js` (~700 lines)
 - Handles all API requests with X-API-Key header
 - Functions:
   - `loadHabits()` — Fetch all habits

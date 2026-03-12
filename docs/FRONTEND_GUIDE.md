@@ -60,7 +60,7 @@ https://comp3011-cw1-habit-api.onrender.com/ui/
 - Change the key before request if needed
 - Key is stored in browser memory (cleared on page refresh)
 
-![API Key Input](./screenshots/api-key.png)
+<!-- Screenshot omitted -->
 
 ### 2. Create Habit
 

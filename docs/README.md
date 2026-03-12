@@ -2,7 +2,7 @@
 
 **Project:** COMP3011 Coursework 1 - Individual Web Services API Development  
 **Author:** Nicolas Issa  
-**Submission Date:** March 10, 2026  
+**Submission Date:** March 13, 2026  
 **Deadline:** 13 March 2026
 
 ---
@@ -21,7 +21,7 @@ This folder contains all required deliverables for the COMP3011 coursework submi
 - **Contents:** Architecture, design choices, testing, limitations, GenAI declaration
 
 ### **3. Presentation Slides**
-- **File:** `PRESENTATION.pptx` (13 slides)
+- **File:** `PRESENTATION.pptx` (10 slides)
 - **Sections:** Overview, stack, architecture, features, security, testing, roadmap
 
 ### **4. GenAI Declaration**
@@ -172,7 +172,7 @@ Authentication and business logic are identical.
 - [x] Technical Report (PDF, 5 pages)
 - [x] Presentation Slides (PPTX)
 - [x] GenAI Declaration (with evidence)
-- [x] Tests (10/10 passing)
+- [x] Tests (14/14 passing)
 - [x] Live Deployment (Render)
 
 ---
@@ -182,7 +182,7 @@ Authentication and business logic are identical.
 | Item | Status |
 |------|--------|
 | **API Endpoints** | 12 (CRUD + Analytics) |
-| **Tests Passing** | 10/10 ✅ |
+| **Tests Passing** | 14/14 ✅ |
 | **Documentation** | Complete |
 | **Git Commits** | 20+ with history |
 | **Code Quality** | Clean, modular |
