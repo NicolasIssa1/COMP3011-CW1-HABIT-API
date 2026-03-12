@@ -17,7 +17,7 @@ This folder contains all required deliverables for the COMP3011 coursework submi
 - **Contents:** All 12 endpoints, examples, status codes, error handling
 
 ### **2. Technical Report**
-- **File:** `TECHNICAL_REPORT.pdf` (5 pages max)
+- **File:** `TECHNICAL_REPORT.pdf` (5 pages)
 - **Contents:** Architecture, design choices, testing, limitations, GenAI declaration
 
 ### **3. Presentation Slides**
@@ -35,6 +35,12 @@ This folder contains all required deliverables for the COMP3011 coursework submi
 ### **6. OpenAPI Specification**
 - **File:** `openapi.json`
 - **Use:** Import into Postman, Swagger Editor, or similar tools
+
+### **7. Supplementary Guides**
+- `API_AUTHENTICATION.md` — How X-API-Key authentication works
+- `FRONTEND_GUIDE.md` — How the `/ui/` dashboard works
+- `IMPLEMENTATION_GUIDE.md` — Implementation notes
+- `SUBMISSION_CHECKLIST.md` — Pre-submission verification checklist
 
 ---
 
@@ -55,68 +61,27 @@ This folder contains all required deliverables for the COMP3011 coursework submi
 
 ---
 
-## 🚀 Quick Start (Three Options)
+## 🚀 Quick Start
 
 ### **Option 1: Web Dashboard (Recommended for Quick Demo) ⭐**
 
-The **graphical dashboard** at `/ui/` is the most user-friendly way to interact:
+Open the dashboard at `/ui/` — no installation needed:
 
-**Local:**
-```
-http://localhost:8000/ui/
-```
+- **Local:** http://localhost:8000/ui/
+- **Live:** https://comp3011-cw1-habit-api.onrender.com/ui/
 
-**Live:**
-```
-https://comp3011-cw1-habit-api.onrender.com/ui/
-```
+Default API key `test-api-key-12345` is pre-filled. You can create, list, and delete habits, log completions, and view streak analytics through the UI.
 
-**What you get:**
-- ✅ Beautiful, responsive interface
-- ✅ Create, list, delete habits with buttons
-- ✅ Real-time search and filtering
-- ✅ View habit streaks and analytics
-- ✅ Default API key pre-filled: `test-api-key-12345`
-- ✅ All requests go to `/api/...` routes under the hood
+### **Option 2: Swagger Docs (For Endpoint Testing)**
 
-**No installation needed** — just open the link!
+Open `/docs` to test each endpoint interactively:
 
----
+- **Local:** http://localhost:8000/docs
+- **Live:** https://comp3011-cw1-habit-api.onrender.com/docs
 
-### **Option 2: Interactive API Docs (For Endpoint Testing)**
+Click any endpoint → "Try it out" → fill parameters → "Execute" → see response.
 
-The **Swagger UI** at `/docs` lets you test each endpoint directly:
-
-**Local:**
-```
-http://localhost:8000/docs
-```
-
-**Live:**
-```
-https://comp3011-cw1-habit-api.onrender.com/docs
-```
-
-**What you get:**
-- ✅ Auto-generated OpenAPI documentation
-- ✅ "Try it out" button for each endpoint
-- ✅ Fill in request body, see response
-- ✅ See all endpoint details, parameters, schemas
-- ✅ Test authentication and error responses
-
-**How to use:**
-1. Open the Swagger link above
-2. Click on any endpoint (e.g., `GET /api/habits`)
-3. Click "Try it out"
-4. Enter request body if needed
-5. Click "Execute"
-6. See live response
-
----
-
-### **Option 3: Run Locally (For Development & Testing)**
-
-Clone and run the full application locally:
+### **Option 3: Run Locally**
 
 ```bash
 git clone https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API.git
@@ -130,37 +95,14 @@ alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
 
-Then access all three interfaces:
+Then access:
 - **Dashboard:** http://localhost:8000/ui/
 - **Swagger Docs:** http://localhost:8000/docs
 - **Raw API:** http://localhost:8000/api/habits
 
 ```bash
-# Run tests
+# Run tests (14/14 passing)
 python -m pytest -v
-```
-
----
-
-### **All Three Interfaces Use The Same API**
-
-```
-┌─────────────────────────────────────┐
-│   Backend API (/api/...routes)      │
-│  - All business logic here           │
-│  - Database operations               │
-│  - Authentication required           │
-└──────────────┬──────────────────────┘
-               │
-       ┌───────┴────────┬───────────┐
-       │                │           │
-   ┌───▼──────┐  ┌──────▼──┐  ┌───▼────┐
-   │  /docs   │  │  /ui/   │  │ /api/  │
-   │ (Swagger)│  │(Frontend)│  │(Raw)   │
-   └──────────┘  └─────────┘  └────────┘
-
-All three access the exact same backend endpoints.
-Authentication and business logic are identical.
 ```
 
 ---
@@ -168,10 +110,10 @@ Authentication and business logic are identical.
 ## ✅ Deliverables Checklist
 
 - [x] Code Repository (GitHub with commit history)
-- [x] API Documentation (PDF)
-- [x] Technical Report (PDF, 5 pages)
-- [x] Presentation Slides (PPTX)
-- [x] GenAI Declaration (with evidence)
+- [x] API Documentation (`api_documentation.pdf`)
+- [x] Technical Report (`TECHNICAL_REPORT.pdf`, 5 pages)
+- [x] Presentation Slides (`PRESENTATION.pptx`, 10 slides)
+- [x] GenAI Declaration (`GENAI_DECLARATION.pdf` + evidence logs)
 - [x] Tests (14/14 passing)
 - [x] Live Deployment (Render)
 
@@ -182,10 +124,9 @@ Authentication and business logic are identical.
 | Item | Status |
 |------|--------|
 | **API Endpoints** | 12 (CRUD + Analytics) |
+| **Authentication** | X-API-Key header on all `/api/` routes |
 | **Tests Passing** | 14/14 ✅ |
 | **Documentation** | Complete |
-| **Git Commits** | 20+ with history |
-| **Code Quality** | Clean, modular |
 | **GenAI Usage** | Fully disclosed |
 | **Live Deployment** | ✅ Render |
 
@@ -196,9 +137,9 @@ Authentication and business logic are identical.
 - **Framework:** FastAPI 0.129.1
 - **ORM:** SQLAlchemy 2.0.46
 - **Validation:** Pydantic 2.12.5
-- **Database:** SQLite (dev) / PostgreSQL (prod)
+- **Database:** SQLite locally; configurable via `DATABASE_URL` env var
 - **Testing:** Pytest 9.0.2
-- **Hosting:** Render (PaaS)
+- **Hosting:** Render (free tier, auto-deploy from `main`)
 
 ---
 
@@ -206,14 +147,13 @@ Authentication and business logic are identical.
 
 **Live URL:** https://comp3011-cw1-habit-api.onrender.com
 
-- ✅ Hosted on Render
-- ✅ PostgreSQL database
+- ✅ Hosted on Render (free tier)
+- ✅ Auto-deployed from GitHub `main` branch
 - ✅ HTTPS enabled
-- ✅ Auto-deployed from GitHub
 - ✅ Health checks operational
+- ✅ Database configured via `DATABASE_URL` environment variable
 
 ---
 
 **Status:** ✅ READY FOR SUBMISSION  
-**Deadline:** 13 March 2026  
-**Deployment:** ✅ LIVE
+**Deadline:** 13 March 2026
