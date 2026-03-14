@@ -145,7 +145,7 @@ class AuthenticatedTestClient(TestClient):
 - Added quick demo section (5 minutes)
 - Reorganized endpoints with auth details
 - Updated feature list
-- Updated test count (10 → 13)
+- Updated test count to 14
 - Added links to new guides
 
 ---
@@ -159,20 +159,20 @@ class AuthenticatedTestClient(TestClient):
 ### Protected (Requires X-API-Key Header)
 
 **Habits:**
-- `POST /habits` — Create
-- `GET /habits` — List
-- `GET /habits/{id}` — Get
-- `PATCH /habits/{id}` — Update
-- `DELETE /habits/{id}` — Delete
+- `POST /api/habits` — Create
+- `GET /api/habits` — List
+- `GET /api/habits/{id}` — Get
+- `PATCH /api/habits/{id}` — Update
+- `DELETE /api/habits/{id}` — Delete
 
 **Logs:**
-- `POST /habits/{id}/logs` — Create log
-- `GET /habits/{id}/logs` — List logs
-- `DELETE /habits/{id}/logs/{log_id}` — Delete log
+- `POST /api/habits/{id}/logs` — Create log
+- `GET /api/habits/{id}/logs` — List logs
+- `DELETE /api/habits/{id}/logs/{log_id}` — Delete log
 
 **Analytics:**
-- `GET /habits/{id}/streak` — Streak stats
-- `GET /analytics/weekly-summary` — Weekly summary
+- `GET /api/habits/{id}/streak` — Streak stats
+- `GET /api/analytics/weekly-summary` — Weekly summary
 
 ---
 

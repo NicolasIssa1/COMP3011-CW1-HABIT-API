@@ -4,8 +4,7 @@
         "title": "Habit & Productivity Analytics API",
         "description": "A comprehensive API for tracking habits, logging completions, and analyzing productivity patterns.",
         "contact": {
-            "name": "API Support",
-            "email": "support@habitapi.dev"
+            "name": "Nicolas Issa"
         },
         "license": {
             "name": "MIT"
@@ -13,14 +12,32 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/habits": {
+        "/api/habits": {
             "post": {
                 "tags": [
                     "habits"
                 ],
                 "summary": "Create a new habit",
                 "description": "Create a new habit to track.",
-                "operationId": "create_habit_habits_post",
+                "operationId": "create_habit_api_habits_post",
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -45,6 +62,12 @@
                     "400": {
                         "description": "Invalid input"
                     },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
+                    },
                     "422": {
                         "description": "Validation Error",
                         "content": {
@@ -63,7 +86,7 @@
                 ],
                 "summary": "List all habits",
                 "description": "List all habits with optional filtering and pagination.",
-                "operationId": "list_habits_habits_get",
+                "operationId": "list_habits_api_habits_get",
                 "parameters": [
                     {
                         "name": "skip",
@@ -127,6 +150,22 @@
                             "title": "Frequency"
                         },
                         "description": "Filter by frequency (daily, weekly, monthly)"
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
                     }
                 ],
                 "responses": {
@@ -139,10 +178,16 @@
                                     "items": {
                                         "$ref": "#/components/schemas/HabitOut"
                                     },
-                                    "title": "Response List Habits Habits Get"
+                                    "title": "Response List Habits Api Habits Get"
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
                     },
                     "422": {
                         "description": "Validation Error",
@@ -157,14 +202,14 @@
                 }
             }
         },
-        "/habits/{habit_id}": {
+        "/api/habits/{habit_id}": {
             "get": {
                 "tags": [
                     "habits"
                 ],
                 "summary": "Get a specific habit",
                 "description": "Retrieve a specific habit by ID.",
-                "operationId": "get_habit_habits__habit_id__get",
+                "operationId": "get_habit_api_habits__habit_id__get",
                 "parameters": [
                     {
                         "name": "habit_id",
@@ -173,6 +218,22 @@
                         "schema": {
                             "type": "integer",
                             "title": "Habit Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
                         }
                     }
                 ],
@@ -189,6 +250,12 @@
                     },
                     "404": {
                         "description": "Habit not found"
+                    },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
                     },
                     "422": {
                         "description": "Validation Error",
@@ -208,7 +275,7 @@
                 ],
                 "summary": "Update a habit",
                 "description": "Update a habit's details.",
-                "operationId": "update_habit_habits__habit_id__patch",
+                "operationId": "update_habit_api_habits__habit_id__patch",
                 "parameters": [
                     {
                         "name": "habit_id",
@@ -217,6 +284,22 @@
                         "schema": {
                             "type": "integer",
                             "title": "Habit Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
                         }
                     }
                 ],
@@ -244,6 +327,12 @@
                     "404": {
                         "description": "Habit not found"
                     },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
+                    },
                     "422": {
                         "description": "Validation Error",
                         "content": {
@@ -262,7 +351,7 @@
                 ],
                 "summary": "Delete a habit",
                 "description": "Delete a habit and all its associated logs.",
-                "operationId": "delete_habit_habits__habit_id__delete",
+                "operationId": "delete_habit_api_habits__habit_id__delete",
                 "parameters": [
                     {
                         "name": "habit_id",
@@ -272,6 +361,22 @@
                             "type": "integer",
                             "title": "Habit Id"
                         }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
                     }
                 ],
                 "responses": {
@@ -280,6 +385,12 @@
                     },
                     "404": {
                         "description": "Habit not found"
+                    },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
                     },
                     "422": {
                         "description": "Validation Error",
@@ -294,14 +405,14 @@
                 }
             }
         },
-        "/habits/{habit_id}/logs": {
+        "/api/habits/{habit_id}/logs": {
             "post": {
                 "tags": [
                     "logs"
                 ],
                 "summary": "Log a habit completion",
                 "description": "Log the completion of a habit on a specific date.",
-                "operationId": "create_log_habits__habit_id__logs_post",
+                "operationId": "create_log_api_habits__habit_id__logs_post",
                 "parameters": [
                     {
                         "name": "habit_id",
@@ -310,6 +421,22 @@
                         "schema": {
                             "type": "integer",
                             "title": "Habit Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
                         }
                     }
                 ],
@@ -337,6 +464,12 @@
                     "409": {
                         "description": "Log already exists for this date"
                     },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
+                    },
                     "422": {
                         "description": "Validation Error",
                         "content": {
@@ -355,7 +488,7 @@
                 ],
                 "summary": "List habit logs",
                 "description": "List all logs for a specific habit with optional date filtering.",
-                "operationId": "list_logs_habits__habit_id__logs_get",
+                "operationId": "list_logs_api_habits__habit_id__logs_get",
                 "parameters": [
                     {
                         "name": "habit_id",
@@ -430,6 +563,22 @@
                             "title": "Limit"
                         },
                         "description": "Number of items to return"
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
                     }
                 ],
                 "responses": {
@@ -442,13 +591,19 @@
                                     "items": {
                                         "$ref": "#/components/schemas/HabitLogOut"
                                     },
-                                    "title": "Response List Logs Habits  Habit Id  Logs Get"
+                                    "title": "Response List Logs Api Habits  Habit Id  Logs Get"
                                 }
                             }
                         }
                     },
                     "404": {
                         "description": "Habit not found"
+                    },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
                     },
                     "422": {
                         "description": "Validation Error",
@@ -463,14 +618,14 @@
                 }
             }
         },
-        "/habits/{habit_id}/logs/{log_id}": {
+        "/api/habits/{habit_id}/logs/{log_id}": {
             "delete": {
                 "tags": [
                     "logs"
                 ],
                 "summary": "Delete a log entry",
                 "description": "Delete a specific log entry for a habit.",
-                "operationId": "delete_log_habits__habit_id__logs__log_id__delete",
+                "operationId": "delete_log_api_habits__habit_id__logs__log_id__delete",
                 "parameters": [
                     {
                         "name": "habit_id",
@@ -489,6 +644,22 @@
                             "type": "integer",
                             "title": "Log Id"
                         }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
                     }
                 ],
                 "responses": {
@@ -497,6 +668,12 @@
                     },
                     "404": {
                         "description": "Log not found"
+                    },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
                     },
                     "422": {
                         "description": "Validation Error",
@@ -511,14 +688,14 @@
                 }
             }
         },
-        "/habits/{habit_id}/streak": {
+        "/api/habits/{habit_id}/streak": {
             "get": {
                 "tags": [
                     "analytics"
                 ],
                 "summary": "Get habit streak statistics",
                 "description": "Get current streak, longest streak, and total completions for a habit.",
-                "operationId": "get_streak_habits__habit_id__streak_get",
+                "operationId": "get_streak_api_habits__habit_id__streak_get",
                 "parameters": [
                     {
                         "name": "habit_id",
@@ -527,6 +704,22 @@
                         "schema": {
                             "type": "integer",
                             "title": "Habit Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
                         }
                     }
                 ],
@@ -544,6 +737,12 @@
                     "404": {
                         "description": "Habit not found"
                     },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
+                    },
                     "422": {
                         "description": "Validation Error",
                         "content": {
@@ -557,14 +756,14 @@
                 }
             }
         },
-        "/analytics/weekly-summary": {
+        "/api/analytics/weekly-summary": {
             "get": {
                 "tags": [
                     "analytics"
                 ],
                 "summary": "Get weekly summary of all habits",
                 "description": "Get a summary of all habits' completions for a specific week (ISO week format).",
-                "operationId": "weekly_summary_analytics_weekly_summary_get",
+                "operationId": "weekly_summary_api_analytics_weekly_summary_get",
                 "parameters": [
                     {
                         "name": "week",
@@ -576,6 +775,22 @@
                             "title": "Week"
                         },
                         "description": "Week in YYYY-WW or YYYY-WWW format (e.g. 2026-09)"
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
                     }
                 ],
                 "responses": {
@@ -591,6 +806,12 @@
                     },
                     "400": {
                         "description": "Invalid week format"
+                    },
+                    "401": {
+                        "description": "Missing API key"
+                    },
+                    "403": {
+                        "description": "Invalid API key"
                     },
                     "422": {
                         "description": "Validation Error",

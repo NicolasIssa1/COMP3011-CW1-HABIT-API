@@ -48,8 +48,7 @@ app = FastAPI(
     version="1.0.0",
     description="A comprehensive API for tracking habits, logging completions, and analyzing productivity patterns.",
     contact={
-        "name": "API Support",
-        "email": "support@habitapi.dev"
+        "name": "Nicolas Issa",
     },
     license_info={
         "name": "MIT",
