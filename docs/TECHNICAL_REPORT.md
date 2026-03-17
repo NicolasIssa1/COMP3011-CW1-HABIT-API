@@ -3,8 +3,8 @@
 **Module:** COMP3011 — Web Services & Web Data (Coursework 1)
 **Author:** Nicolas Issa
 **Date:** March 2026
-**Repository:** [github.com/NicolasIssa1/COMP3011-CW1-HABIT-API](https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API)
-**Deployed URL:** [comp3011-cw1-habit-api.onrender.com](https://comp3011-cw1-habit-api.onrender.com)
+**Repository:** [https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API](https://github.com/NicolasIssa1/COMP3011-CW1-HABIT-API)
+**Deployed URL:** [https://comp3011-cw1-habit-api.onrender.com](https://comp3011-cw1-habit-api.onrender.com)
 
 ---
 
